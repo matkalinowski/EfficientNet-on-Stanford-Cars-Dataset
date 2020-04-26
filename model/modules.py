@@ -1,10 +1,15 @@
 from torch import nn
-from config.structure import EfficientNetInfoContainer, EfficientNetInfo, NetworkParams, CompoundScalars, GlobalParams
+
+import math
+from config.structure import EfficientNetInfoContainer, EfficientNetInfo, GlobalParams
 from torch.utils import model_zoo
 from functools import partial
 from torch.nn import functional as F
-import math
+
 import torch
+
+from model.round import round_repeats, round_filters
+
 
 class MBConvBlock(nn.Module):
     """
@@ -24,7 +29,7 @@ class MBConvBlock(nn.Module):
         self._block_args = block_args
         self._bn_mom = 1 - global_params.batch_norm_momentum
         self._bn_eps = global_params.batch_norm_epsilon
-        self.has_se = (self._block_args.se_ratio is not None) and (0 < self._block_args.se_ratio <= 1)
+        self.has_se = (block_args.se_ratio is not None) and (0 < self._block_args.se_ratio <= 1)
         self.id_skip = block_args.id_skip  # skip connection and drop connect
 
         # Get static or dynamic convolution depending on image size
@@ -86,8 +91,6 @@ class MBConvBlock(nn.Module):
         return x
 
 
-
-
 class EfficientNet(nn.Module):
 
     def __init__(self, net_info: EfficientNetInfo):
@@ -111,15 +114,16 @@ class EfficientNet(nn.Module):
 
             # Update block input and output filters based on depth multiplier.
             block_args = block_args.update_block(
-                input_filters=round_filters(block_args.input_filters, self._global_params),
-                output_filters=round_filters(block_args.output_filters, self._global_params),
-                num_repeat=round_repeats(block_args.num_repeat, self._global_params)
+                input_filters=round_filters(block_args.input_filters, net_info.network_params),
+                output_filters=round_filters(block_args.output_filters, net_info.network_params),
+                num_repeat=round_repeats(block_args.num_repeat, net_info.network_params.compound_scalars),
+                network_params=net_info.network_params
             )
 
             # The first block needs to take care of stride and filter size increase.
             self._blocks.append(MBConvBlock(block_args, global_params))
             if block_args.num_repeat > 1:
-                block_args = block_args.update_block(input_filters=block_args.output_filters, stride=1)
+                block_args = block_args.update(input_filters=block_args.output_filters, stride=1)
             for _ in range(block_args.num_repeat - 1):
                 self._blocks.append(MBConvBlock(block_args, global_params))
 
@@ -131,8 +135,8 @@ class EfficientNet(nn.Module):
 
         # Final linear layer
         self._avg_pooling = nn.AdaptiveAvgPool2d(1)
-        self._dropout = nn.Dropout(self._global_params.dropout_rate)
-        self._fc = nn.Linear(out_channels, self._global_params.num_classes)
+        self._dropout = nn.Dropout(global_params.dropout_rate)
+        self._fc = nn.Linear(out_channels, global_params.num_classes)
 
     @classmethod
     def from_name(cls, model_name, load_weights=False, advprop=False):
@@ -146,28 +150,7 @@ class EfficientNet(nn.Module):
         return model
 
 
-def round_repeats(repeats, compound_scalars: CompoundScalars):
-    """ Round number of filters based on depth multiplier. """
-    multiplier = compound_scalars.depth_coefficient
-    if not multiplier:
-        return repeats
-    return int(math.ceil(multiplier * repeats))
 
-
-def round_filters(filters, network_params: NetworkParams):
-    global_params = network_params.global_params
-    """ Calculate and round number of filters based on depth multiplier. """
-    multiplier = network_params.compound_scalars.width_coefficient
-    if not multiplier:
-        return filters
-    divisor = global_params.depth_divisor
-    min_depth = global_params.min_depth
-    filters *= multiplier
-    min_depth = min_depth or divisor
-    new_filters = max(min_depth, int(filters + divisor / 2) // divisor * divisor)
-    if new_filters < 0.9 * filters:  # prevent rounding by more than 10%
-        new_filters += divisor
-    return int(new_filters)
 
 def drop_connect(inputs, p, training):
     """ Drop connect. """
