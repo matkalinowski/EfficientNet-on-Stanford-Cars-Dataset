@@ -10,8 +10,9 @@ project_main_dir = Path('.')
 data_dir = project_main_dir / 'data'
 
 input_data = data_dir / 'input'
-# output_data = data_dir / 'stanford'
-#
+output_data = data_dir / 'output'
+models_location = output_data / 'models'
+
 # train_location = output_data / 'cars_train'
 
 project_structure = dict(
@@ -59,6 +60,7 @@ class BlockParams:
     def update(self, **kwargs):
         self.__dict__.update(kwargs)
         return self
+
 
 @dataclass
 class CompoundScalars:
