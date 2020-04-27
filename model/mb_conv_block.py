@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from model.Swish import MemoryEfficientSwish
 from structure.conv_2d import get_same_padding_conv2d
 from structure.network_params import GlobalParams
 
@@ -55,6 +56,7 @@ class MBConvBlock(nn.Module):
         final_oup = self._block_args.output_filters
         self._project_conv = Conv2d(in_channels=oup, out_channels=final_oup, kernel_size=1, bias=False)
         self._bn2 = nn.BatchNorm2d(num_features=final_oup, momentum=self._bn_mom, eps=self._bn_eps)
+        self._swish = MemoryEfficientSwish()
 
     def forward(self, inputs, drop_connect_rate=None):
         """
@@ -84,6 +86,10 @@ class MBConvBlock(nn.Module):
                 x = self._drop_connect(x, p=drop_connect_rate)
             x = x + inputs  # skip connection
         return x
+
+    def set_swish(self, memory_efficient=True):
+        """Sets swish function as memory efficient (for training) or standard (for export)"""
+        self._swish = MemoryEfficientSwish() if memory_efficient else Swish()
 
     def _drop_connect(self, inputs, p):
         """ Drop connect. """
