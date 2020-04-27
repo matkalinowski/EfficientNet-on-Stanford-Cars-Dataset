@@ -1,10 +1,10 @@
 from pathlib import Path
 
-import re
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import List
 
-from model.round import round_filters, round_repeats
+from structure.efficient_net_info import EfficientNetInfo
+from structure.network_params import CompoundScalars, GlobalParams, NetworkParams
 
 project_main_dir = Path('.')
 data_dir = project_main_dir / 'data'
@@ -38,156 +38,6 @@ data_sources = dict(
         ),
     ),
 )
-
-
-@dataclass
-class BlockParams:
-    kernel_size: int
-    num_repeat: int
-    input_filters: int
-    output_filters: int
-    expand_ratio: int
-    id_skip: Tuple
-    se_ratio: Optional[float]
-    stride: List[int]
-
-    def update_block(self, input_filters, output_filters, num_repeat, network_params):
-        self.input_filters = round_filters(input_filters, network_params)
-        self.output_filters = round_filters(output_filters, network_params)
-        self.num_repeat = round_repeats(num_repeat, network_params.compound_scalars)
-        return self
-
-    def update(self, **kwargs):
-        self.__dict__.update(kwargs)
-        return self
-
-
-@dataclass
-class CompoundScalars:
-    width_coefficient: float
-    depth_coefficient: float
-    resolution: int
-
-
-@dataclass
-class GlobalParams:
-    dropout_rate: float
-    num_classes: int = 1000
-    image_size: int = 224
-
-    batch_norm_momentum: float = 0.99
-    batch_norm_epsilon: float = 1e-3
-    drop_connect_rate: float = 0.2
-    depth_divisor: int = 8
-    min_depth: int = None
-
-
-@dataclass
-class NetworkParams:
-    compound_scalars: CompoundScalars
-    global_params: GlobalParams
-
-
-
-class BlockDecoder(object):
-    """ Block Decoder for readability, straight from the official TensorFlow repository """
-
-    @staticmethod
-    def _decode_block_string(block_string):
-        """ Gets a block through a string notation of arguments. """
-        assert isinstance(block_string, str)
-
-        ops = block_string.split('_')
-        options = {}
-        for op in ops:
-            splits = re.split(r'(\d.*)', op)
-            if len(splits) >= 2:
-                key, value = splits[:2]
-                options[key] = value
-
-        # Check stride
-        assert (('s' in options and len(options['s']) == 1) or
-                (len(options['s']) == 2 and options['s'][0] == options['s'][1]))
-
-        return BlockParams(
-            kernel_size=int(options['k']),
-            num_repeat=int(options['r']),
-            input_filters=int(options['i']),
-            output_filters=int(options['o']),
-            expand_ratio=int(options['e']),
-            id_skip=('noskip' not in block_string),
-            se_ratio=float(options['se']) if 'se' in options else None,
-            stride=[int(options['s'][0])])
-
-    @staticmethod
-    def _encode_block_string(block: BlockParams):
-        """Encodes a block to a string."""
-        args = [
-            'r%d' % block.num_repeat,
-            'k%d' % block.kernel_size,
-            's%d%d' % (block.stride[0], block.stride[1]),
-            'e%s' % block.expand_ratio,
-            'i%d' % block.input_filters,
-            'o%d' % block.output_filters
-        ]
-        if 0 < block.se_ratio <= 1:
-            args.append('se%s' % block.se_ratio)
-        if block.id_skip is False:
-            args.append('noskip')
-        return '_'.join(args)
-
-    @staticmethod
-    def decode(string_list) -> List[BlockParams]:
-        """
-        Decodes a list of string notations to specify blocks inside the network.
-
-        :param string_list: a list of strings, each string is a notation of block
-        :return: a list of BlockArgs namedtuples of block args
-        """
-        assert isinstance(string_list, list)
-        blocks_paramms = []
-        for block_string in string_list:
-            blocks_paramms.append(BlockDecoder._decode_block_string(block_string))
-        return blocks_paramms
-
-    @staticmethod
-    def encode(blocks_args):
-        """
-        Encodes a list of BlockArgs to a list of strings.
-
-        :param blocks_args: a list of BlockArgs namedtuples of block args
-        :return: a list of strings, each string is a notation of block
-        """
-        block_strings = []
-        for block in blocks_args:
-            block_strings.append(BlockDecoder._encode_block_string(block))
-        return block_strings
-
-
-@dataclass
-class EfficientNetInfo:
-    name: str
-    network_params: NetworkParams
-    pretrained_url: str
-    advprop_pretrained_src: str
-    _block_args: List[str] = None
-    block_params: List[BlockParams] = None
-
-    def __post_init__(self):
-        if not self._block_args:
-            self._block_args = [
-                'r1_k3_s11_e1_i32_o16_se0.25', 'r2_k3_s22_e6_i16_o24_se0.25',
-                'r2_k5_s22_e6_i24_o40_se0.25', 'r3_k3_s22_e6_i40_o80_se0.25',
-                'r3_k5_s11_e6_i80_o112_se0.25', 'r4_k5_s22_e6_i112_o192_se0.25',
-                'r1_k3_s11_e6_i192_o320_se0.25',
-            ]
-            self.block_params = BlockDecoder.decode(self._block_args)
-
-    def get_pretrained_url(self, advprop):
-        if advprop:
-            return self.advprop_pretrained_src
-        else:
-            return self.pretrained_url
 
 
 @dataclass
