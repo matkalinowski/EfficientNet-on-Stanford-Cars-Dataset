@@ -11,8 +11,10 @@ class CompoundScalars:
 @dataclass
 class GlobalParams:
     dropout_rate: float
+
     num_classes: int = 1000
     image_size: int = 224
+    in_channels: int = 3
 
     batch_norm_momentum: float = 0.99
     batch_norm_epsilon: float = 1e-3

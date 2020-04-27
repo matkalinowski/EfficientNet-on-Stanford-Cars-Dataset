@@ -11,7 +11,7 @@ from torch.utils import model_zoo
 
 class EfficientNet(nn.Module):
 
-    def __init__(self, net_info: EfficientNetInfo, in_channels = 3):
+    def __init__(self, net_info: EfficientNetInfo):
         super().__init__()
         self.net_info = net_info
         global_params = net_info.network_params.global_params
@@ -22,7 +22,7 @@ class EfficientNet(nn.Module):
         bn_mom = 1 - global_params.batch_norm_momentum
         bn_eps = global_params.batch_norm_epsilon
 
-        self._conv_stem = Conv2d(in_channels, out_channels, kernel_size=3, stride=2, bias=False)
+        self._conv_stem = Conv2d(global_params.in_channels, out_channels, kernel_size=3, stride=2, bias=False)
         self._bn0 = nn.BatchNorm2d(num_features=out_channels, momentum=bn_mom, eps=bn_eps)
 
         self._blocks = self.generate_blocks()
