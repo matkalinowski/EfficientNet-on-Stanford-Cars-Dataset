@@ -10,6 +10,7 @@ from structure.block_params import round_filters
 from torch.utils import model_zoo
 
 
+
 class EfficientNet(nn.Module):
 
     def __init__(self, net_info: EfficientNetInfo):
@@ -18,36 +19,24 @@ class EfficientNet(nn.Module):
 
         global_params = net_info.network_params.global_params
         out_channels = round_filters(1280, net_info.network_params)
+        Conv2d = get_same_padding_conv2d(image_size=global_params.image_size)
 
-        self._conv_stem, self._bn0 = self.build_batch_norm_conv(in_channels=global_params.in_channels,
-                                                                out_channels=round_filters(32, net_info.network_params),
-                                                                kernel_size=3,
-                                                                stride=2)
+        self._conv_stem = Conv2d(in_channels=global_params.in_channels, kernel_size=3, stride=2,
+                                 out_channels=round_filters(32, net_info.network_params), bias=False)
+        self._bn0 = nn.BatchNorm2d(num_features=out_channels, momentum=global_params.batch_norm_momentum,
+                                   eps=global_params.batch_norm_epsilon)
+
         self._blocks = self.build_blocks()
 
-        self._conv_head, self._bn1 = self.build_batch_norm_conv(in_channels=self._blocks[-1]._project_conv.out_channels,
-                                                                out_channels=out_channels,
-                                                                kernel_size=1,
-                                                                stride=1)
+        self._conv_head = Conv2d(in_channels=self._blocks[-1]._project_conv.out_channels, out_channels=out_channels,
+                                 kernel_size=1, stride=1, bias=False)
+        self._bn1 = nn.BatchNorm2d(num_features=out_channels, momentum=global_params.batch_norm_momentum,
+                                   eps=global_params.batch_norm_epsilon)
 
         self._avg_pooling = nn.AdaptiveAvgPool2d(1)
         self._dropout = nn.Dropout(global_params.dropout_rate)
         self._fc = nn.Linear(out_channels, global_params.num_classes)
         self._swish = MemoryEfficientSwish()
-
-    def build_batch_norm_conv(self, in_channels, out_channels, kernel_size, stride):
-        global_params = self.net_info.network_params.global_params
-        Conv2d = get_same_padding_conv2d(image_size=global_params.image_size)
-
-        conv = Conv2d(in_channels,
-                      out_channels,
-                      kernel_size=kernel_size,
-                      stride=stride,
-                      bias=False)
-        bn = nn.BatchNorm2d(num_features=out_channels,
-                            momentum=global_params.batch_norm_momentum,
-                            eps=global_params.batch_norm_epsilon)
-        return conv, bn
 
     def build_blocks(self):
         global_params = self.net_info.network_params.global_params
@@ -56,12 +45,11 @@ class EfficientNet(nn.Module):
         for block_args in BlockDecoder.decode(self.net_info.block_args):
             block_args = block_args.round_block(network_params=self.net_info.network_params)
 
-            # The first block needs to take care of stride and filter size increase.
             blocks.append(MBConvBlock(block_args, global_params))
             if block_args.num_repeat > 1:
-                block_args = block_args.update(input_filters=block_args.output_filters, stride=1)
-            for _ in range(block_args.num_repeat - 1):
-                blocks.append(MBConvBlock(block_args, global_params))
+                block_args = block_args.update_parameters(input_filters=block_args.output_filters, stride=1)
+                for _ in range(block_args.num_repeat - 1):
+                    blocks.append(MBConvBlock(block_args, global_params))
         return blocks
 
     @classmethod

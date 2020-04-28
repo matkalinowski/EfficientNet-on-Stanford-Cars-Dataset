@@ -2,7 +2,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from model.Swish import MemoryEfficientSwish
+from model.Swish import MemoryEfficientSwish, Swish
+from structure.block_params import BlockParams
 from structure.conv_2d import get_same_padding_conv2d
 from structure.network_params import GlobalParams
 
@@ -19,43 +20,43 @@ class MBConvBlock(nn.Module):
         has_se (bool): Whether the block contains a Squeeze and Excitation layer.
     """
 
-    def __init__(self, block_args, global_params: GlobalParams):
+    def __init__(self, block_args: BlockParams, global_params: GlobalParams):
 
         super().__init__()
         self._block_args = block_args
-        self._bn_mom = 1 - global_params.batch_norm_momentum
-        self._bn_eps = global_params.batch_norm_epsilon
-        self.has_se = (block_args.se_ratio is not None) and (0 < self._block_args.se_ratio <= 1)
+        self.has_se = (block_args.se_ratio is not None) and (0 < block_args.se_ratio <= 1)
         self.id_skip = block_args.id_skip  # skip connection and drop connect
+
+        output_channels = block_args.input_filters * block_args.expand_ratio
 
         # Get static or dynamic convolution depending on image size
         Conv2d = get_same_padding_conv2d(image_size=global_params.image_size)
 
         # Expansion phase
-        inp = self._block_args.input_filters  # number of input channels
-        oup = self._block_args.input_filters * self._block_args.expand_ratio  # number of output channels
-        if self._block_args.expand_ratio != 1:
-            self._expand_conv = Conv2d(in_channels=inp, out_channels=oup, kernel_size=1, bias=False)
-            self._bn0 = nn.BatchNorm2d(num_features=oup, momentum=self._bn_mom, eps=self._bn_eps)
+        if block_args.expand_ratio != 1:
+            self._expand_conv = Conv2d(in_channels=block_args.input_filters, out_channels=output_channels,kernel_size=1,
+                                       bias=False)
+            self._bn0 = nn.BatchNorm2d(num_features=output_channels, momentum=global_params.batch_norm_momentum,
+                                       eps=global_params.batch_norm_epsilon)
 
         # Depthwise convolution phase
-        k = self._block_args.kernel_size
-        s = self._block_args.stride
-        self._depthwise_conv = Conv2d(
-            in_channels=oup, out_channels=oup, groups=oup,  # groups makes it depthwise
-            kernel_size=k, stride=s, bias=False)
-        self._bn1 = nn.BatchNorm2d(num_features=oup, momentum=self._bn_mom, eps=self._bn_eps)
+        self._depthwise_conv = Conv2d(in_channels=output_channels, out_channels=output_channels, groups=output_channels,
+                                      # groups makes it depthwise
+                                      kernel_size=block_args.kernel_size, stride=block_args.stride, bias=False)
+        self._bn1 = nn.BatchNorm2d(num_features=output_channels, momentum=global_params.batch_norm_momentum,
+                                   eps=global_params.batch_norm_epsilon)
 
         # Squeeze and Excitation layer, if desired
         if self.has_se:
-            num_squeezed_channels = max(1, int(self._block_args.input_filters * self._block_args.se_ratio))
-            self._se_reduce = Conv2d(in_channels=oup, out_channels=num_squeezed_channels, kernel_size=1)
-            self._se_expand = Conv2d(in_channels=num_squeezed_channels, out_channels=oup, kernel_size=1)
+            num_squeezed_channels = max(1, int(block_args.input_filters * block_args.se_ratio))
+            self._se_reduce = Conv2d(in_channels=output_channels, out_channels=num_squeezed_channels, kernel_size=1)
+            self._se_expand = Conv2d(in_channels=num_squeezed_channels, out_channels=output_channels, kernel_size=1)
 
         # Output phase
-        final_oup = self._block_args.output_filters
-        self._project_conv = Conv2d(in_channels=oup, out_channels=final_oup, kernel_size=1, bias=False)
-        self._bn2 = nn.BatchNorm2d(num_features=final_oup, momentum=self._bn_mom, eps=self._bn_eps)
+        final_oup = block_args.output_filters
+        self._project_conv = Conv2d(in_channels=output_channels, out_channels=final_oup, kernel_size=1, bias=False)
+        self._bn2 = nn.BatchNorm2d(num_features=final_oup, momentum=global_params.batch_norm_momentum,
+                                   eps=global_params.batch_norm_epsilon)
         self._swish = MemoryEfficientSwish()
 
     def forward(self, inputs, drop_connect_rate=None):

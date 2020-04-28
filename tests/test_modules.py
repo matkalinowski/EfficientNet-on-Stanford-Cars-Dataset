@@ -14,3 +14,4 @@ def test_init_from_name():
     disc_model = torch.load(model_path)
 
     assert len(model.state_dict()) == len(disc_model)
+    print(model)

@@ -39,7 +39,7 @@ class BlockParams:
         self.num_repeat = self._round_repeats(network_params.compound_scalars)
         return self
 
-    def update(self, **kwargs):
+    def update_parameters(self, **kwargs):
         self.__dict__.update(kwargs)
         return self
 
