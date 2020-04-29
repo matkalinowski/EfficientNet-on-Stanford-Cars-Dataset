@@ -21,6 +21,11 @@ project_structure = dict(
     stanford_data_source=input_data / 'stanford',
 )
 
+telegram = dict(
+    TELEGRAM_TOKEN='1069361426:AAH21f3L9g1PD_CJKe3ckKcVqlC00JdAI6c',
+    CHAT_ID='368109717'
+)
+
 data_sources = dict(
     stanford=dict(
         data_source='https://ai.stanford.edu/~jkrause/cars/car_dataset.html',

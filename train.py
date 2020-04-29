@@ -11,7 +11,8 @@ from fastai.metrics import accuracy, LabelSmoothingCrossEntropy
 import pandas as pd
 from config.structure import data_sources, project_structure
 from fastai.vision import (get_transforms, ImageList, ResizeMethod, annealing_cos)
-from timeit import default_timer as timer
+
+from utils.telegram import send_learning_update, TelegramUpdater, training_updater
 
 
 def main():
@@ -33,53 +34,6 @@ def main():
                            padding_mode='reflection')
             .databunch()
             .normalize(imagenet_stats))
-
-
-    from telegram.ext import Updater
-    from telegram.ext import CommandHandler
-    TELEGRAM_TOKEN = '1069361426:AAH21f3L9g1PD_CJKe3ckKcVqlC00JdAI6c'
-    CHAT_ID = '368109717'
-
-    updater = Updater(token=TELEGRAM_TOKEN, use_context=True)
-    dispatcher = updater.dispatcher
-
-    def howis(update, context):
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Your training is fine, wait 10 more hours")
-
-    def getid(update, context):
-        context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.chat_id)
-
-    dispatcher.add_handler(CommandHandler('howis', howis))
-    dispatcher.add_handler(CommandHandler('getid', getid))
-    updater.start_polling()
-    bot = updater.bot
-
-    # progress_msg_res = bot.send_message(chat_id = CHAT_ID, text = 'Test message')
-    # progress_msg_res.edit_text('Iteration 1: loss: 1')
-
-    # embedding_img_path = './images/embedding.png'
-    # plot_embeddings(train_embeddings_baseline, train_labels_baseline, plt_store_path=embedding_img_path)
-    # bot.send_photo(chat_id = CHAT_ID, photo=open(embedding_img_path, 'rb'))
-
-    def send_message(msg, chat_id=CHAT_ID, bot=bot):
-        bot.send_message(chat_id=CHAT_ID, text=msg)
-
-    def telegram_updater(func):
-        def wrapper(*args, **kwargs):
-            send_message('Training started.')
-            start = timer()
-            result = func(*args, **kwargs)
-            send_message(f'Training ended. Took {timer() - start} minutes.')
-            return result
-
-        return wrapper
-
-    def send_update(learn):
-        if learn and hasattr(learn, 'recorder'):
-            send_message(f'val_loss: {learn.recorder.val_losses}.\nacc {[m[0].item() for m in learn.recorder.metrics]}')
-        else:
-            print('learn object is not valid')
-
 
     # By @muellerzr on the fastai forums:
     # https://forums.fast.ai/t/meet-mish-new-activation-function-possible-successor-to-relu/53299/133
@@ -115,6 +69,7 @@ def main():
     @dataclass
     class SimpleRecorder(LearnerCallback):
         learn: Learner
+        telegram_updater: TelegramUpdater = TelegramUpdater()
 
         def on_train_begin(self, **kwargs: Any) -> None:
             self.losses = []
@@ -124,7 +79,7 @@ def main():
 
         def on_epoch_end(self, last_loss, smooth_loss, **kwarg):
             print('Epoch ended', last_loss, smooth_loss)
-            send_update(self.learn)
+            send_learning_update(self.telegram_updater, self.learn)
 
         def plot(self, **kwargs):
             losses = self.losses
@@ -134,7 +89,7 @@ def main():
             ax.set_xlabel('Iteration')
             ax.plot(iterations, losses)
 
-    @telegram_updater
+    @training_updater
     def perform_EfficientNet_training(model, epochs=40):
 
         learn = Learner(data,
@@ -150,7 +105,7 @@ def main():
         fit_fc(learn, tot_epochs=epochs, lr=15e-4, start_pct=0.1, wd=1e-3, show_curve=True)
 
         model_id = f'{model.net_info.name}-{time.strftime("%Y_%m_%d-%H_%M_%S")}'
-        torch.save(model.state_dict, project_structure.models_location / model_id)
+        torch.save(model.state_dict(), project_structure['models_location'] / model_id)
 
         result = {
             'model_name': model_name,
@@ -158,16 +113,23 @@ def main():
             'model': model,
             'learner': learn
         }
-
-        return result, learn
+        return result
 
     model_name = 'efficientnet-b0'
-
     from model.efficient_net import EfficientNet
     model = EfficientNet.from_name(model_name, load_weights=True)
 
     data.batch_size = 48
-    result, learn = perform_EfficientNet_training(model, epochs=3)
+    result = perform_EfficientNet_training(model, epochs=1)
+    # zobacz co sensownie jest zapisywac, jak to wczytywac itd itp
+    # uprosc trening, porozbijaj na pakiety funkcje
+
+    # naprawic:
+    # learning_updater, [29.04.20 13: 29]
+    # Training
+    # ended.Took
+    # 268.47143619999997
+    # minutes.
     print('Finished')
 
 
