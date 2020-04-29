@@ -44,7 +44,8 @@ class MBConvBlock(nn.Module):
         # Depthwise convolution phase
         self._depthwise_conv = Conv2d(in_channels=output_channels, out_channels=output_channels, groups=output_channels,
                                       # groups makes it depthwise
-                                      kernel_size=self._block_args.kernel_size, stride=self._block_args.stride, bias=False)
+                                      kernel_size=self._block_args.kernel_size, stride=self._block_args.stride,
+                                      bias=False)
         self._bn1 = nn.BatchNorm2d(num_features=output_channels, momentum=global_params.batch_norm_momentum,
                                    eps=global_params.batch_norm_epsilon)
 

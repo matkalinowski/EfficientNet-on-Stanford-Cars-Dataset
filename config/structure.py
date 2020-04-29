@@ -11,13 +11,13 @@ data_dir = project_main_dir / 'data'
 
 input_data = data_dir / 'input'
 output_data = data_dir / 'output'
-models_location = output_data / 'models'
 
 # train_location = output_data / 'cars_train'
 
 project_structure = dict(
     input_data=input_data,
-    # output_data=output_data,
+    output_data=output_data,
+    models_location=output_data / 'models',
     stanford_data_source=input_data / 'stanford',
 )
 

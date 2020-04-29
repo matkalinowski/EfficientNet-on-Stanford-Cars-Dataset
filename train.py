@@ -1,16 +1,20 @@
+from dataclasses import dataclass
 from datetime import time
 
+import torch
 from fastai.basic_train import Learner, LearnerCallback
 from fastai.callback import annealing_linear, annealing_exp, CallbackList
 from fastai.callbacks import TrainingPhase, GeneralScheduler
-from fastai.core import Floats, defaults, Tuple, Optional, listify, dataclass, Any, plt
+from fastai.core import Floats, defaults, Tuple, Optional, listify, Any, plt
 from fastai.metrics import accuracy, LabelSmoothingCrossEntropy
 
 import pandas as pd
-from config.structure import data_sources
+from config.structure import data_sources, project_structure
 from fastai.vision import (get_transforms, ImageList, ResizeMethod, annealing_cos)
+from timeit import default_timer as timer
 
-def mejn():
+
+def main():
     dataset = data_sources['stanford']
 
     labels = pd.read_csv(str(dataset['labels']['location']))
@@ -30,36 +34,55 @@ def mejn():
             .databunch()
             .normalize(imagenet_stats))
 
-    print('data loaded')
 
-    def save_metrics_to_csv(exp_name, run_count, learn, metrics):
-        for m in metrics:
-            name = f'{m}_{exp_name}_run{str(run_count)}_2020-03_15'
+    from telegram.ext import Updater
+    from telegram.ext import CommandHandler
+    TELEGRAM_TOKEN = '1069361426:AAH21f3L9g1PD_CJKe3ckKcVqlC00JdAI6c'
+    CHAT_ID = '368109717'
 
-            ls = []
-            if m == 'val_loss_and_acc':
-                acc = []
-                for l in learn.recorder.metrics:
-                    acc.append(l[0].item())
-                ls = learn.recorder.val_losses
+    updater = Updater(token=TELEGRAM_TOKEN, use_context=True)
+    dispatcher = updater.dispatcher
 
-                d = {name: ls, 'acc': acc}
-                df = pd.DataFrame(d)
-                # df.columns = [name, 'acc']
-            elif m == 'trn_loss':
-                for l in learn.recorder.losses:
-                    ls.append(l.item())
-                df = pd.DataFrame(ls)
-                df.columns = [name]
+    def howis(update, context):
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Your training is fine, wait 10 more hours")
 
-            df.to_csv(f'{name}_{m}.csv')
-            print(df.head())
+    def getid(update, context):
+        context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.chat_id)
+
+    dispatcher.add_handler(CommandHandler('howis', howis))
+    dispatcher.add_handler(CommandHandler('getid', getid))
+    updater.start_polling()
+    bot = updater.bot
+
+    # progress_msg_res = bot.send_message(chat_id = CHAT_ID, text = 'Test message')
+    # progress_msg_res.edit_text('Iteration 1: loss: 1')
+
+    # embedding_img_path = './images/embedding.png'
+    # plot_embeddings(train_embeddings_baseline, train_labels_baseline, plt_store_path=embedding_img_path)
+    # bot.send_photo(chat_id = CHAT_ID, photo=open(embedding_img_path, 'rb'))
+
+    def send_message(msg, chat_id=CHAT_ID, bot=bot):
+        bot.send_message(chat_id=CHAT_ID, text=msg)
+
+    def telegram_updater(func):
+        def wrapper(*args, **kwargs):
+            send_message('Training started.')
+            start = timer()
+            result = func(*args, **kwargs)
+            send_message(f'Training ended. Took {timer() - start} minutes.')
+            return result
+
+        return wrapper
+
+    def send_update(learn):
+        if learn and hasattr(learn, 'recorder'):
+            send_message(f'val_loss: {learn.recorder.val_losses}.\nacc {[m[0].item() for m in learn.recorder.metrics]}')
+        else:
+            print('learn object is not valid')
+
 
     # By @muellerzr on the fastai forums:
     # https://forums.fast.ai/t/meet-mish-new-activation-function-possible-successor-to-relu/53299/133
-
-
-
     def FlatCosAnnealScheduler(learn, lr: float = 4e-3, tot_epochs: int = 1, moms: Floats = (0.95, 0.999),
                                start_pct: float = 0.72, curve='cosine'):
         "Manage FCFit trainnig as found in the ImageNette experiments"
@@ -81,8 +104,7 @@ def mejn():
         return GeneralScheduler(learn, phases)
 
     def fit_fc(learn: Learner, tot_epochs: int = None, lr: float = defaults.lr,
-               moms: Tuple[float, float] = (0.95, 0.85),
-               start_pct: float = 0.72,
+               moms: Tuple[float, float] = (0.95, 0.85), start_pct: float = 0.72,
                wd: float = None, callbacks: Optional[CallbackList] = None, show_curve: bool = False) -> None:
         "Fit a model with Flat Cosine Annealing"
         max_lr = learn.lr_range(lr)
@@ -102,6 +124,7 @@ def mejn():
 
         def on_epoch_end(self, last_loss, smooth_loss, **kwarg):
             print('Epoch ended', last_loss, smooth_loss)
+            send_update(self.learn)
 
         def plot(self, **kwargs):
             losses = self.losses
@@ -111,6 +134,7 @@ def mejn():
             ax.set_xlabel('Iteration')
             ax.plot(iterations, losses)
 
+    @telegram_updater
     def perform_EfficientNet_training(model, epochs=40):
 
         learn = Learner(data,
@@ -125,15 +149,15 @@ def mejn():
 
         fit_fc(learn, tot_epochs=epochs, lr=15e-4, start_pct=0.1, wd=1e-3, show_curve=True)
 
-        # model_id = f'{model_name}-{time.strftime("%Y_%m_%d-%H_%M_%S")}'
-        # # torch.save(model.state_dict, MODELS_DIR / model_id)
-        #
-        # result = {
-        #     'model_name': model_name,
-        #     'model_id': model_id,
-        #     'model': model,
-        #     'learner': learn
-        # }
+        model_id = f'{model.net_info.name}-{time.strftime("%Y_%m_%d-%H_%M_%S")}'
+        torch.save(model.state_dict, project_structure.models_location / model_id)
+
+        result = {
+            'model_name': model_name,
+            'model_id': model_id,
+            'model': model,
+            'learner': learn
+        }
 
         return result, learn
 
@@ -142,12 +166,10 @@ def mejn():
     from model.efficient_net import EfficientNet
     model = EfficientNet.from_name(model_name, load_weights=True)
 
-    # from ep import EfficientNet
-    # model = EfficientNet.from_pretrained(model_name)
-
-    data.batch_size = 4
-    result, learn = perform_EfficientNet_training(model, epochs=10)
+    data.batch_size = 48
+    result, learn = perform_EfficientNet_training(model, epochs=3)
+    print('Finished')
 
 
 if __name__ == '__main__':
-    mejn()
+    main()
