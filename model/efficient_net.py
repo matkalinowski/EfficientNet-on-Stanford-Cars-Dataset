@@ -18,16 +18,17 @@ class EfficientNet(nn.Module):
         self.net_info = net_info
 
         global_params = net_info.network_params.global_params
-        out_channels = round_filters(1280, net_info.network_params)
         Conv2d = get_same_padding_conv2d(image_size=global_params.image_size)
 
+        out_channels = round_filters(32, net_info.network_params)
         self._conv_stem = Conv2d(in_channels=global_params.in_channels, kernel_size=3, stride=2,
-                                 out_channels=round_filters(32, net_info.network_params), bias=False)
+                                 out_channels=out_channels, bias=False)
         self._bn0 = nn.BatchNorm2d(num_features=out_channels, momentum=global_params.batch_norm_momentum,
                                    eps=global_params.batch_norm_epsilon)
 
         self._blocks = self.build_blocks()
 
+        out_channels = round_filters(1280, net_info.network_params)
         self._conv_head = Conv2d(in_channels=self._blocks[-1]._project_conv.out_channels, out_channels=out_channels,
                                  kernel_size=1, stride=1, bias=False)
         self._bn1 = nn.BatchNorm2d(num_features=out_channels, momentum=global_params.batch_norm_momentum,
@@ -48,8 +49,8 @@ class EfficientNet(nn.Module):
             blocks.append(MBConvBlock(block_args, global_params))
             if block_args.num_repeat > 1:
                 block_args = block_args.update_parameters(input_filters=block_args.output_filters, stride=1)
-                for _ in range(block_args.num_repeat - 1):
-                    blocks.append(MBConvBlock(block_args, global_params))
+            for _ in range(block_args.num_repeat - 1):
+                blocks.append(MBConvBlock(block_args, global_params))
         return blocks
 
     @classmethod
@@ -71,7 +72,7 @@ class EfficientNet(nn.Module):
 
         # Blocks
         for idx, block in enumerate(self._blocks):
-            drop_connect_rate = self._global_params.drop_connect_rate
+            drop_connect_rate = self.net_info.network_params.global_params.drop_connect_rate
             if drop_connect_rate:
                 drop_connect_rate *= float(idx) / len(self._blocks)
             x = block(x, drop_connect_rate=drop_connect_rate)
