@@ -1,5 +1,6 @@
-from fastai.basic_train import Learner
-from fastai.callbacks import CSVLogger
+from fastai.basic_train import Recorder, Learner
+
+from fastai.callbacks import CSVLogger, SaveModelCallback
 from fastai.metrics import accuracy, LabelSmoothingCrossEntropy
 from model.efficient_net import EfficientNet
 
@@ -7,9 +8,7 @@ import pandas as pd
 from config.structure import data_sources
 from fastai.vision import (get_transforms, ImageList, ResizeMethod)
 
-from structure.recorder import SimpleRecorder
-from utils.telegram import training_updater
-
+from structure.recorder import CustomRecorder
 from utils.default_logging import configure_default_logging
 
 log = configure_default_logging(__name__)
@@ -38,10 +37,9 @@ def main():
     dataset_location = dataset_info['train']['location']
 
     labels = pd.read_csv(dataset_info['labels']['location'])
-    data = load_data(dataset_location, labels)
+    data = load_data(dataset_location, labels, batch_size=48)
 
-    @training_updater
-    def perform_EfficientNet_training(model_name, epochs=40):
+    def perform_efficient_net_training(model_name, epochs=40):
         model = EfficientNet.from_name(model_name, load_weights=True)
 
         learn = Learner(data=data,
@@ -51,15 +49,16 @@ def main():
                         true_wd=True,
                         metrics=[accuracy],
                         loss_func=LabelSmoothingCrossEntropy(),
-                        callback_fns=[CSVLogger, SimpleRecorder]
+                        callback_fns=[CustomRecorder]
                         ).to_fp16()
 
         learn.fit(epochs=epochs, lr=15e-4, wd=1e-3)
 
         return learn
 
-    learn = perform_EfficientNet_training('efficientnet-b0', epochs=1)
-    learn.csv_logger.read_logged_file()
+    learn = perform_efficient_net_training('efficientnet-b0', epochs=1)
+
+    print(learn.csv_logger.read_logged_file())
     log.info('Ended training.')
 
 
