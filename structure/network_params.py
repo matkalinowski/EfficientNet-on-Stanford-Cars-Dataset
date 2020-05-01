@@ -18,6 +18,7 @@ class GlobalParams:
 
     # https://github.com/lukemelas/EfficientNet-PyTorch/issues/3
     batch_norm_momentum: float = 0.01
+
     batch_norm_epsilon: float = 1e-3
     drop_connect_rate: float = 0.2
     depth_divisor: int = 8

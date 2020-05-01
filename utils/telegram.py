@@ -2,13 +2,16 @@ from fastai.basic_train import Learner
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from timeit import default_timer as timer
+from utils.default_logging import configure_default_logging
 
+log = configure_default_logging(__name__)
 
 from config.structure import telegram
 
 
 class TelegramUpdater:
     def __init__(self, chat_id=telegram['CHAT_ID']):
+        log.info('Initializing telegram updater.')
         self.updater = Updater(token=telegram['TELEGRAM_TOKEN'], use_context=True)
         self.dispatcher = self.updater.dispatcher
         self.bot = self.updater.bot
@@ -37,11 +40,11 @@ def training_updater(func):
     def wrapper(*args, **kwargs):
         tu.send_message('Training started.')
         start = timer()
-        try:
-            result = func(*args, **kwargs)
-        except Exception as e:
-            tu.send_message(f'Your training failed, exc: {e}')
-            return None
+        # try:
+        result = func(*args, **kwargs)
+        # except Exception as e:
+            # tu.send_message(f'Your training failed, exc: {e}')
+            # raise Exception(e)
         tu.send_message(f'Training ended. Took about {(timer() - start)//60} minutes.')
         return result
     return wrapper

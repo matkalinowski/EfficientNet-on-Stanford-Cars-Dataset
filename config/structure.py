@@ -17,6 +17,7 @@ output_data = data_dir / 'output'
 project_structure = dict(
     input_data=input_data,
     output_data=output_data,
+    logging_dir=output_data / 'logs',
     models_location=output_data / 'models',
     stanford_data_source=input_data / 'stanford',
 )
