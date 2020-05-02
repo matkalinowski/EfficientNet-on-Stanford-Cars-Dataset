@@ -9,7 +9,7 @@ _logging_dir = project_structure['logging_dir']
 def configure_default_logging(name):
     _today = datetime.today().strftime('%Y-%m-%d')
 
-    _logging_dir.mkdir(exist_ok=True)
+    # _logging_dir.mkdir(exist_ok=True)
     _log_file = f'{_today}.log'
     _pid = os.getpid()
 
