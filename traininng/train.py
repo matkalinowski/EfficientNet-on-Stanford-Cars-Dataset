@@ -48,14 +48,14 @@ def main():
                         true_wd=True,
                         metrics=[accuracy],
                         loss_func=LabelSmoothingCrossEntropy(),
-                        callback_fns=[CustomRecorder, CSVLogger, SaveModelCallback]
+                        callback_fns=[CSVLogger, CustomRecorder, SaveModelCallback]
                         ).to_fp16()
 
         learn.fit(epochs=epochs, lr=15e-4, wd=1e-3)
 
         return learn
 
-    learn = perform_efficient_net_training('efficientnet-b0', epochs=3)
+    learn = perform_efficient_net_training('efficientnet-b0', epochs=10)
     print(learn.csv_logger.read_logged_file())
 
 

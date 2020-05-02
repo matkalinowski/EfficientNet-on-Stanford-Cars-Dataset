@@ -19,6 +19,7 @@ project_structure = dict(
     output_data=output_data,
     logging_dir=output_data / 'logs',
     models_location=output_data / 'models',
+    images_location=output_data / 'images',
     stanford_data_source=input_data / 'stanford',
 )
 
