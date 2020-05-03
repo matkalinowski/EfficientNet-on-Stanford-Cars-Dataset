@@ -3,7 +3,9 @@ from typing import Tuple
 import pandas as pd
 from fastai.vision import ImageList, get_transforms, ResizeMethod
 
-from traininng.train import log
+from utils.default_logging import configure_default_logging
+
+log = configure_default_logging(__name__)
 
 
 def load_data(dataset_info, image_size=300, batch_size=48, dataset_type='train') -> Tuple[ImageList, pd.DataFrame]:

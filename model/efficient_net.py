@@ -1,6 +1,5 @@
 from torch import nn
 
-from config.structure import EfficientNetInfoContainer
 from model.Swish import MemoryEfficientSwish
 from model.mb_conv_block import MBConvBlock
 from model.conv_2d import get_same_padding_conv2d
@@ -9,11 +8,12 @@ from structure.block_decoder import BlockDecoder
 from structure.block_params import round_filters
 from torch.utils import model_zoo
 
+from structure.efficient_nets import EfficientNets
 
 
 class EfficientNet(nn.Module):
 
-    def __init__(self, net_info: EfficientNetInfo):
+    def __init__(self, net_info: EfficientNetInfo, load_weights=False, advprop=False):
         super().__init__()
         self.net_info = net_info
 
@@ -39,6 +39,11 @@ class EfficientNet(nn.Module):
         self._fc = nn.Linear(out_channels, global_params.num_classes)
         self._swish = MemoryEfficientSwish()
 
+        if load_weights:
+            self.load_state_dict(
+                model_zoo.load_url(
+                    self.net_info.get_pretrained_url(advprop)))
+
     def build_blocks(self):
         global_params = self.net_info.network_params.global_params
 
@@ -53,16 +58,6 @@ class EfficientNet(nn.Module):
                 blocks.append(MBConvBlock(block_args, global_params))
         return blocks
 
-    @classmethod
-    def from_name(cls, model_name, load_weights=False, advprop=False):
-        model = cls(EfficientNetInfoContainer()[model_name])
-
-        if load_weights:
-            model.load_state_dict(
-                model_zoo.load_url(
-                    model.net_info.get_pretrained_url(advprop)))
-
-        return model
 
     def extract_features(self, inputs):
         """ Returns output of the final convolution layer """

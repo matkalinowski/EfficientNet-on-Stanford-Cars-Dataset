@@ -4,9 +4,10 @@ from fastai.metrics import accuracy, LabelSmoothingCrossEntropy
 
 from config.structure import data_sources
 from model.efficient_net import EfficientNet
+from structure.efficient_nets import EfficientNets
+from traininng.data import load_data
 from traininng.recorder import CustomRecorder
 from structure.train_info import TrialInfo
-from traininng.data import load_data
 from utils.default_logging import configure_default_logging
 
 log = configure_default_logging(__name__)
@@ -34,7 +35,7 @@ def perform_efficient_net_training(model, data, epochs=40):
 
 def main():
     data = load_data(dataset_info=data_sources['stanford'], batch_size=48)
-    model = EfficientNet.from_name(model_name='efficientnet-b0', load_weights=True)
+    model = EfficientNet(net_info=EfficientNets.b0.value, load_weights=True)
 
     learn, trial_info = perform_efficient_net_training(model, data, epochs=3)
 
