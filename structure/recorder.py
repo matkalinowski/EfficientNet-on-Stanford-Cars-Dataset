@@ -2,10 +2,9 @@ from time import time
 from typing import List
 
 from fastai.basic_train import Recorder, Learner, Union
-from telegram import InputFile
 
 from config.structure import project_structure
-from structure.files import generate_file_path_with_timestamp
+from structure.files import get_file_path_with_timestamp
 from utils.default_logging import configure_default_logging
 from utils.telegram import TelegramUpdater
 
@@ -37,7 +36,7 @@ class CustomRecorder(Recorder):
     def on_epoch_end(self, last_loss, smooth_loss, **kwargs):
         Recorder.on_epoch_end(self, smooth_loss=smooth_loss, **kwargs)
         self.lap_times.append(time() - self.lap_start)
-        self._log_execution(f"Epoch {kwargs['epoch']}/{kwargs['n_epochs'] - 1} ended. "
+        self._log_execution(f"Epoch {kwargs['epoch'] + 1}/{kwargs['n_epochs']} ended. "
                             f"Train loss: {round(smooth_loss.item(), 3)} "
                             f"Valid loss: {round(self.learn.recorder.val_losses[-1], 3)} "
                             f"Accuracy: {round(self.learn.recorder.metrics[-1][0].item(), 3)} "
@@ -49,15 +48,15 @@ class CustomRecorder(Recorder):
             self._log_execution(f'Training failed. Exception: {exception}')
         else:
             self._log_execution(f'Training successful.')
-            self.save_and_send_image(img = self.learn.recorder.plot_losses(return_fig=True),
+            self.save_and_send_image(img=self.learn.recorder.plot_losses(return_fig=True),
                                      filename=f'{self.learn.model.net_info.name}_losses')
-            self.save_and_send_image(img = self.learn.recorder.plot_metrics(return_fig=True),
+            self.save_and_send_image(img=self.learn.recorder.plot_metrics(return_fig=True),
                                      filename=f'{self.learn.model.net_info.name}_metrics')
 
     def save_and_send_image(self, img, filename):
-        img_path = generate_file_path_with_timestamp(directory=project_structure.images_location,
-                                                     filename=filename,
-                                                     extension='jpg')
+        img_path = get_file_path_with_timestamp(directory=project_structure['train_images_location'],
+                                                filename=filename,
+                                                extension='jpg')
         img.savefig(img_path)
         if not self.learn.silent:
             self.telegram_updater.send_photo(open(img_path, 'rb'))
