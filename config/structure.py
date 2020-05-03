@@ -11,7 +11,7 @@ def get_project_structure(machine_type:MachineType = MachineType.colab):
     if machine_type == MachineType.local:
         data_dir = Path('.') / 'data'
     else:
-        data_dir = Path('.') / 'data'
+        data_dir = Path('drive/My Drive/Colab Notebooks/Studia (DNN)/projekt') / 'data'
 
     input_data = data_dir / 'input'
     output_data = data_dir / 'output'

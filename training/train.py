@@ -5,8 +5,8 @@ from fastai.metrics import accuracy, LabelSmoothingCrossEntropy
 from config.structure import get_data_sources
 from model.efficient_net import EfficientNet
 from structure.efficient_nets import EfficientNets
-from traininng.data import load_data
-from traininng.recorder import CustomRecorder
+from training.data import load_data
+from training.recorder import CustomRecorder
 from structure.train_info import TrialInfo
 from utils.default_logging import configure_default_logging
 
