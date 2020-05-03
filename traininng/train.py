@@ -4,7 +4,7 @@ from fastai.metrics import accuracy, LabelSmoothingCrossEntropy
 
 from config.structure import data_sources
 from model.efficient_net import EfficientNet
-from structure.recorder import CustomRecorder
+from traininng.recorder import CustomRecorder
 from structure.train_info import TrialInfo
 from traininng.data import load_data
 from utils.default_logging import configure_default_logging
@@ -30,8 +30,7 @@ def main():
                         path=trial_info.output_folder,
                         ).to_fp16()
 
-        learn.fit(epochs=epochs, lr=15e-4, wd=1e-3,
-                  callbacks=[CustomRecorder(learn, trial_info)])
+        learn.fit(epochs=epochs, lr=15e-4, wd=1e-3, callbacks=[CustomRecorder(learn, trial_info)])
 
         return learn
 
