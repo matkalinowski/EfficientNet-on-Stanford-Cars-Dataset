@@ -9,6 +9,7 @@ from config.structure import data_sources
 from fastai.vision import (get_transforms, ImageList, ResizeMethod)
 
 from structure.recorder import CustomRecorder
+from structure.train_info import TrialInfo
 from utils.default_logging import configure_default_logging
 
 log = configure_default_logging(__name__)
@@ -40,6 +41,7 @@ def main():
 
     def perform_efficient_net_training(model_name, epochs=40):
         model = EfficientNet.from_name(model_name, load_weights=True)
+        trial_info = TrialInfo(model_type=model.net_info.name)
 
         learn = Learner(data=data,
                         model=model,
@@ -48,14 +50,16 @@ def main():
                         true_wd=True,
                         metrics=[accuracy],
                         loss_func=LabelSmoothingCrossEntropy(),
-                        callback_fns=[CSVLogger, CustomRecorder, SaveModelCallback]
+                        callback_fns=[CSVLogger, SaveModelCallback],
+                        path=trial_info.output_folder,
                         ).to_fp16()
 
-        learn.fit(epochs=epochs, lr=15e-4, wd=1e-3)
+        learn.fit(epochs=epochs, lr=15e-4, wd=1e-3,
+                  callbacks=[CustomRecorder(learn, trial_info)])
 
         return learn
 
-    learn = perform_efficient_net_training('efficientnet-b0', epochs=10)
+    learn = perform_efficient_net_training('efficientnet-b0', epochs=3)
     print(learn.csv_logger.read_logged_file())
 
 

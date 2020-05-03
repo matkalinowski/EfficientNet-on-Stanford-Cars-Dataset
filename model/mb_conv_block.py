@@ -4,7 +4,7 @@ from torch.nn import functional as F
 
 from model.Swish import MemoryEfficientSwish, Swish
 from structure.block_params import BlockParams
-from structure.conv_2d import get_same_padding_conv2d
+from model.conv_2d import get_same_padding_conv2d
 from structure.network_params import GlobalParams
 
 from copy import deepcopy

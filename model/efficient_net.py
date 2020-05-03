@@ -3,7 +3,7 @@ from torch import nn
 from config.structure import EfficientNetInfoContainer
 from model.Swish import MemoryEfficientSwish
 from model.mb_conv_block import MBConvBlock
-from structure.conv_2d import get_same_padding_conv2d
+from model.conv_2d import get_same_padding_conv2d
 from structure.efficient_net_info import EfficientNetInfo
 from structure.block_decoder import BlockDecoder
 from structure.block_params import round_filters
