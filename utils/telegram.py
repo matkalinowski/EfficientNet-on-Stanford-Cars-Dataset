@@ -1,17 +1,18 @@
 from functools import wraps
 
-from fastai.basic_train import Learner
 from telegram.ext import Updater
 from timeit import default_timer as timer
 from utils.default_logging import configure_default_logging
-from config.structure import telegram
+from config.structure import get_telegram_settings
+
+telegram_settings = get_telegram_settings()
 
 log = configure_default_logging(__name__)
 
 
 class TelegramUpdater:
-    def __init__(self, chat_id=telegram['CHAT_ID']):
-        self.updater = Updater(token=telegram['TELEGRAM_TOKEN'], use_context=True)
+    def __init__(self, chat_id=telegram_settings['CHAT_ID']):
+        self.updater = Updater(token=telegram_settings['TELEGRAM_TOKEN'], use_context=True)
         self.dispatcher = self.updater.dispatcher
         self.bot = self.updater.bot
         self.chat_id = chat_id

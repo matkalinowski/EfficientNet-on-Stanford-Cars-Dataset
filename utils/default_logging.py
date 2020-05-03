@@ -2,8 +2,8 @@ import logging
 import os.path
 from datetime import datetime
 
-from config.structure import project_structure
-_logging_dir = project_structure['logging_dir']
+from config.structure import get_project_structure
+_logging_dir = get_project_structure()['logging_dir']
 
 
 def configure_default_logging(name):

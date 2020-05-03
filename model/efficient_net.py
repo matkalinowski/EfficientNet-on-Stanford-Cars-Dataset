@@ -8,8 +8,6 @@ from structure.block_decoder import BlockDecoder
 from structure.block_params import round_filters
 from torch.utils import model_zoo
 
-from structure.efficient_nets import EfficientNets
-
 
 class EfficientNet(nn.Module):
 
