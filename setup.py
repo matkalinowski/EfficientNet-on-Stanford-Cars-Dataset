@@ -6,7 +6,8 @@ setuptools.setup(
      description="Minimal implementation of EfficientNet",
      url="https://github.com/matkalinowski/dnn",
      install_requires=[
-        'pandas>=1.0.1'
+        'pandas>=1.0.1',
+        'python-telegram-bot>=12.5',
      ],
      extras_require={
         'dev': [
