@@ -19,8 +19,10 @@ class CustomRecorder(Recorder):
     lap_start: time = time()
     in_colab: bool = 'google.colab' in sys.modules
 
-    def __init__(self, learn: Learner, trial_info: TrialInfo, add_time: bool = True, silent: bool = False):
+    def __init__(self, learn: Learner, trial_info: TrialInfo, add_time: bool = True, silent: bool = False,
+                 send_images_every=10):
         super().__init__(learn, add_time=add_time, silent=silent)
+        self.send_images_every = send_images_every
         self.trial_info = trial_info
 
     def on_train_begin(self, **kwargs) -> None:
@@ -33,11 +35,11 @@ class CustomRecorder(Recorder):
     def on_epoch_end(self, last_loss, smooth_loss, **kwargs):
         self.lap_times.append(time() - self.lap_start)
         self._log_execution(f"Epoch {kwargs['epoch'] + 1}/{kwargs['n_epochs']} ended. "
-                            f"Train loss: {round(smooth_loss.item(), 3)} "
-                            f"Valid loss: {round(self.learn.recorder.val_losses[-1], 3)} "
-                            f"Accuracy: {round(self.learn.recorder.metrics[-1][0].item(), 3)} "
-                            f"Took: {round(self.lap_times[-1], 2)} seconds.")
-        if kwargs['epoch'] % 10 == 0:
+                            f"Train loss: {smooth_loss.item():.3f} "
+                            f"Valid loss: {self.learn.recorder.val_losses[-1]:.3f} "
+                            f"Accuracy: {self.learn.recorder.metrics[-1][0].item():.3f} "
+                            f"Took: {self.lap_times[-1]:.3f} seconds.")
+        if kwargs['epoch'] % self.send_images_every == 0:
             self.send_images()
 
     def on_train_end(self, exception: Union[bool, Exception], **kwargs) -> None:
