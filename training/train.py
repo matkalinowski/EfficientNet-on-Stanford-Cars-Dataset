@@ -34,8 +34,8 @@ def perform_efficient_net_training(model, data, epochs=40):
 
 
 def main():
-    data, labels = load_data(dataset_info=get_data_sources()['stanford'], batch_size=48)
-    model = EfficientNet(net_info=EfficientNets.b0.value, load_weights=True)
+    data, labels = load_data(dataset_info=get_data_sources()['stanford'], batch_size=32)
+    model = EfficientNet(net_info=EfficientNets.b1.value, load_weights=True)
 
     learn, trial_info = perform_efficient_net_training(model, data, epochs=1)
 
