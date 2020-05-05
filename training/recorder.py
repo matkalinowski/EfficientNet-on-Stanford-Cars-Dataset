@@ -3,7 +3,7 @@ from typing import List
 
 from fastai.basic_train import Recorder, Learner, Union
 
-from structure.train_info import TrialInfo
+from structure.trial_info import TrialInfo
 from utils.default_logging import configure_default_logging
 from utils.files import get_file_path_with_timestamp
 from utils.telegram import TelegramUpdater
@@ -28,6 +28,8 @@ class CustomRecorder(Recorder):
     def on_train_begin(self, **kwargs) -> None:
         Recorder.on_train_begin(self, **kwargs)
         self._log_execution(f'Training started. Assigned id: {self.trial_info.trial_id}')
+        self.trial_info.drop_trial_info()
+
 
     def on_epoch_begin(self, **kwargs) -> None:
         self.lap_start = time()
@@ -48,6 +50,7 @@ class CustomRecorder(Recorder):
         else:
             self._log_execution(f'Training successful. Results are stored in: {self.trial_info.output_folder}')
             self.send_images()
+
 
     def send_images(self):
         self.save_and_send_image(img=self.learn.recorder.plot_losses(return_fig=True),

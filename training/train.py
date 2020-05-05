@@ -7,15 +7,16 @@ from model.efficient_net import EfficientNet
 from structure.efficient_nets import EfficientNets
 from training.data import load_data
 from training.recorder import CustomRecorder
-from structure.train_info import TrialInfo
+from structure.trial_info import TrialInfo
 from utils.default_logging import configure_default_logging
 
 log = configure_default_logging(__name__)
 
 
-def perform_efficient_net_training(model, data, epochs=40):
+def perform_efficient_net_training(model_info: EfficientNets, data, epochs=40, load_weights=True, advprop=False):
+    model = EfficientNet(model_info.value, load_weights, advprop)
 
-    trial_info = TrialInfo(model_type=model.net_info.name)
+    trial_info = TrialInfo(model_info, load_weights, advprop)
 
     learn = Learner(data=data,
                     model=model,
@@ -35,9 +36,7 @@ def perform_efficient_net_training(model, data, epochs=40):
 
 def main():
     data, labels = load_data(dataset_info=get_data_sources()['stanford'], batch_size=32)
-    model = EfficientNet(net_info=EfficientNets.b1.value, load_weights=True)
-
-    learn, trial_info = perform_efficient_net_training(model, data, epochs=1)
+    learn, trial_info = perform_efficient_net_training(EfficientNets.b3, data, epochs=1)
 
     print(learn.csv_logger.read_logged_file())
 
