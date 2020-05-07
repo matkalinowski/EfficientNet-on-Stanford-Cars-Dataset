@@ -30,7 +30,6 @@ class CustomRecorder(Recorder):
         self._log_execution(f'Training started. Assigned id: {self.trial_info.trial_id}')
         self.trial_info.drop_trial_info()
 
-
     def on_epoch_begin(self, **kwargs) -> None:
         self.lap_start = time()
 
