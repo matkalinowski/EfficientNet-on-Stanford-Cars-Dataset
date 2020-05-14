@@ -8,7 +8,12 @@ from utils.default_logging import configure_default_logging
 log = configure_default_logging(__name__)
 
 
-def load_data(dataset_info, image_size=300, batch_size=48, dataset_type='train') -> Tuple[ImageList, pd.DataFrame]:
+def load_data(
+        dataset_info,
+        image_size=300,
+        batch_size=48,
+        dataset_type='train'
+) -> Tuple[ImageList, pd.DataFrame]:
     dataset_location = dataset_info[dataset_type]['location']
 
     log.info(f'Loading data from: {dataset_location}; image size: {image_size}; batch size: {batch_size}.')

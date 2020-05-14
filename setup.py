@@ -8,6 +8,8 @@ setuptools.setup(
      install_requires=[
         'pandas>=1.0.1',
         'python-telegram-bot>=12.5',
+        'fastai>=1.0.61',
+        'mlflow>=1.8.0'
      ],
      extras_require={
         'dev': [

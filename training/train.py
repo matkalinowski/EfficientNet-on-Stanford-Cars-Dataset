@@ -1,19 +1,32 @@
+import os
+from dataclasses import asdict
+from typing import Tuple
+
+from fastai.basic_data import DataBunch
 from fastai.basic_train import Learner
 from fastai.callbacks import CSVLogger, SaveModelCallback
+from fastai.callbacks.mlflow import MLFlowTracker
 from fastai.metrics import accuracy, LabelSmoothingCrossEntropy
 
 from config.structure import get_data_sources
 from model.efficient_net import EfficientNet
 from structure.efficient_nets import EfficientNets
+from structure.trial_info import TrialInfo
 from training.data import load_data
 from training.recorder import CustomRecorder
-from structure.trial_info import TrialInfo
 from utils.default_logging import configure_default_logging
 
 log = configure_default_logging(__name__)
 
 
-def perform_efficient_net_training(model_info: EfficientNets, data, epochs=40, load_weights=True, advprop=False):
+def perform_efficient_net_training(
+        model_info: EfficientNets,
+        data: DataBunch,
+        epochs=40,
+        load_weights=True,
+        advprop=False
+) -> Tuple[Learner, TrialInfo]:
+
     model = EfficientNet(model_info.value, load_weights, advprop)
 
     trial_info = TrialInfo(model_info, load_weights, advprop)
@@ -29,14 +42,20 @@ def perform_efficient_net_training(model_info: EfficientNets, data, epochs=40, l
                     path=trial_info.output_folder
                     ).to_fp16()
 
-    learn.fit(epochs=epochs, lr=15e-4, wd=1e-3, callbacks=[CustomRecorder(learn, trial_info)])
+    ml_tracker = MLFlowTracker(learn=learn,
+                               exp_name=str(trial_info.trial_id),
+                               params=asdict(model_info.value),
+                               nb_path=os.path.abspath(__file__),
+                               uri='https://community.cloud.databricks.com/?o=691382743079884')
+    learn.fit(epochs=epochs, lr=15e-4, wd=1e-3, callbacks=[CustomRecorder(learn, trial_info),
+                                                           ml_tracker])
 
     return learn, trial_info
 
 
 def main():
     data, labels = load_data(dataset_info=get_data_sources()['stanford'], batch_size=32)
-    learn, trial_info = perform_efficient_net_training(EfficientNets.b3, data, epochs=1)
+    learn, trial_info = perform_efficient_net_training(EfficientNets.b0, data, epochs=1)
 
     print(learn.csv_logger.read_logged_file())
 
