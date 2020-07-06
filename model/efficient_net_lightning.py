@@ -133,7 +133,7 @@ class EfficientNetLightning(pl.LightningModule):
         # if integer was badly rounded we need to add or substract some data
         split_sizes[-1] = split_sizes[-1] + (len(dataset) - sum(split_sizes))
 
-        self.train, self.val, self.test = random_split(dataset, split_sizes)
+        self.train, self.val, self.test = random_split(dataset, split_sizes.tolist())
 
     def train_dataloader(self):
         return DataLoader(self.train, batch_size=self.batch_size, num_workers=8)
