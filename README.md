@@ -48,8 +48,8 @@ Details about the models are below:
 from config.structure import get_data_sources
 from structure.efficient_nets import EfficientNets
 from training.data import load_data
-from training.train import perform_efficient_net_training
+from training.train import perform_efficient_net_fastai_training
 
 data, labels = load_data(dataset_info=get_data_sources()['stanford'], batch_size=16)
-learn, trial_info = perform_efficient_net_training(EfficientNets.b7, data, epochs=40, advprop=True)
+learn, trial_info = perform_efficient_net_fastai_training(EfficientNets.b7, data, epochs=40, advprop=True)
 ```

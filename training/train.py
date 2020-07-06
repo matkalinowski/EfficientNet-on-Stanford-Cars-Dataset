@@ -19,7 +19,7 @@ from utils.default_logging import configure_default_logging
 log = configure_default_logging(__name__)
 
 
-def perform_efficient_net_training(
+def perform_efficient_net_fastai_training(
         model_info: EfficientNets,
         data: DataBunch,
         epochs=40,
@@ -55,7 +55,7 @@ def perform_efficient_net_training(
 
 def main():
     data, labels = load_data(dataset_info=get_data_sources()['stanford'], batch_size=32)
-    learn, trial_info = perform_efficient_net_training(EfficientNets.b0, data, epochs=1)
+    learn, trial_info = perform_efficient_net_fastai_training(EfficientNets.b0, data, epochs=1)
 
     print(learn.csv_logger.read_logged_file())
 
