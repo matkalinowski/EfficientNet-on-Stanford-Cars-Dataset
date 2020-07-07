@@ -1,6 +1,6 @@
+import numpy as np
 import pytorch_lightning as pl
 import torch
-from fastai.layers import LabelSmoothingCrossEntropy
 from torch import nn
 from torch.utils import model_zoo
 from torch.utils.data import DataLoader, random_split
@@ -14,16 +14,14 @@ from structure.block_params import round_filters
 from structure.efficient_net_info import EfficientNetInfo
 from training.cars_dataset import CarsDataset
 from utils.default_logging import configure_default_logging
-import numpy as np
 
 log = configure_default_logging(__name__)
 
 
 class EfficientNetLightning(pl.LightningModule):
 
-    def __init__(self, net_info: EfficientNetInfo, batch_size, load_weights=False, advprop=False):
+    def __init__(self, net_info: EfficientNetInfo, load_weights=False, advprop=False):
         super().__init__()
-        self.batch_size = batch_size
         self.net_info = net_info
         # self.loss = LabelSmoothingCrossEntropy()
         self.loss = torch.nn.CrossEntropyLoss()
@@ -105,18 +103,21 @@ class EfficientNetLightning(pl.LightningModule):
 
         return x
 
-    def training_step(self, train_batch, batch_idx):
-        x, y = train_batch
-        loss = self.loss(self(x), torch.tensor(y, dtype=torch.long))
+    def single_step(self, batch, batch_idx, train_type):
+        x, y = batch
+        loss = self.loss(self(x), y)
 
-        logs = {'train_loss': loss}
+        logs = {f'{train_type}_{batch_idx}_loss': loss}
         return {'loss': loss, 'log': logs}
 
-    # def validation_step(self, val_batch):
-    #     x, y = val_batch
-    #     logits = self.forward(x)
-    #     loss = self.loss(logits, y)
-    #     return {'val_loss': loss}
+    def training_step(self, train_batch, batch_idx):
+        return self.single_step(train_batch, batch_idx, 'train')
+
+    def validation_step(self, val_batch, batch_idx):
+        return self.single_step(val_batch, batch_idx, 'val')
+
+    def test_step(self, test_batch, batch_idx):
+        return self.single_step(test_batch, batch_idx, 'test')
 
     def prepare_data(self):
         dataset_info = get_data_sources()['stanford']
@@ -134,13 +135,13 @@ class EfficientNetLightning(pl.LightningModule):
         self.train_data, self.val, self.test = random_split(dataset, split_sizes.tolist())
 
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
+        return DataLoader(self.train_data, shuffle=True)
 
-    # def val_dataloader(self):
-    #     return DataLoader(self.val, batch_size=self.batch_size, num_workers=8)
+    def val_dataloader(self):
+        return DataLoader(self.val)
 
-    # def test_dataloader(self):
-    #     return DataLoader(self.val, batch_size=self.batch_size, num_workers=8)
+    def test_dataloader(self):
+        return DataLoader(self.test)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=1e-3)
