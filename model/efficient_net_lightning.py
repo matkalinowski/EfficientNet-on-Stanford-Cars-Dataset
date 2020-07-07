@@ -25,8 +25,8 @@ class EfficientNetLightning(pl.LightningModule):
         super().__init__()
         self.batch_size = batch_size
         self.net_info = net_info
-        # self.loss = LabelSmoothingCrossEntropy()
-        self.loss = torch.nn.CrossEntropyLoss()
+        self.loss = LabelSmoothingCrossEntropy()
+        # self.loss = torch.nn.CrossEntropyLoss()
 
         global_params = net_info.network_params.global_params
         Conv2d = get_same_padding_conv2d(image_size=global_params.image_size)
@@ -105,21 +105,31 @@ class EfficientNetLightning(pl.LightningModule):
 
         return x
 
-    def single_step(self, batch, batch_idx, train_type):
+    def single_step(self, batch, batch_idx, loss_type):
         x, y = batch
         loss = self.loss(self(x), y)
 
-        logs = {f'{train_type}_{batch_idx}_loss': loss}
-        return {'loss': loss, 'log': logs}
+        logs = {loss_type: loss}
+        return {loss_type: loss, 'log': logs}
 
     def training_step(self, train_batch, batch_idx):
-        return self.single_step(train_batch, batch_idx, 'train')
+        return self.single_step(train_batch, batch_idx, 'loss')
 
     def validation_step(self, val_batch, batch_idx):
-        return self.single_step(val_batch, batch_idx, 'val')
+        return self.single_step(val_batch, batch_idx, 'val_loss')
 
     def test_step(self, test_batch, batch_idx):
-        return self.single_step(test_batch, batch_idx, 'test')
+        return self.single_step(test_batch, batch_idx, 'test_loss')
+
+    def validation_end(self, outputs):
+        avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
+        tensorboard_logs = {'val_loss': avg_loss}
+        return {'avg_val_loss': avg_loss, 'log': tensorboard_logs}
+
+    def test_end(self, outputs):
+        avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
+        tensorboard_logs = {'test_loss': avg_loss}
+        return {'avg_test_loss': avg_loss, 'log': tensorboard_logs}
 
     def prepare_data(self):
         dataset_info = get_data_sources()['stanford']
@@ -136,12 +146,15 @@ class EfficientNetLightning(pl.LightningModule):
         split_sizes[-1] = split_sizes[-1] + (len(dataset) - sum(split_sizes))
         self.train_data, self.val, self.test = random_split(dataset, split_sizes.tolist())
 
+    @pl.data_loader
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
 
+    @pl.data_loader
     def val_dataloader(self):
         return DataLoader(self.val, batch_size=self.batch_size)
 
+    @pl.data_loader
     def test_dataloader(self):
         return DataLoader(self.test, batch_size=self.batch_size)
 
