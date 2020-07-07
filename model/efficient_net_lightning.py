@@ -1,6 +1,6 @@
-import numpy as np
 import pytorch_lightning as pl
 import torch
+from fastai.layers import LabelSmoothingCrossEntropy
 from torch import nn
 from torch.utils import model_zoo
 from torch.utils.data import DataLoader, random_split
@@ -14,14 +14,16 @@ from structure.block_params import round_filters
 from structure.efficient_net_info import EfficientNetInfo
 from training.cars_dataset import CarsDataset
 from utils.default_logging import configure_default_logging
+import numpy as np
 
 log = configure_default_logging(__name__)
 
 
 class EfficientNetLightning(pl.LightningModule):
 
-    def __init__(self, net_info: EfficientNetInfo, load_weights=False, advprop=False):
+    def __init__(self, net_info: EfficientNetInfo, batch_size, load_weights=False, advprop=False):
         super().__init__()
+        self.batch_size = batch_size
         self.net_info = net_info
         # self.loss = LabelSmoothingCrossEntropy()
         self.loss = torch.nn.CrossEntropyLoss()
@@ -135,13 +137,13 @@ class EfficientNetLightning(pl.LightningModule):
         self.train_data, self.val, self.test = random_split(dataset, split_sizes.tolist())
 
     def train_dataloader(self):
-        return DataLoader(self.train_data, shuffle=True)
+        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
 
     def val_dataloader(self):
-        return DataLoader(self.val)
+        return DataLoader(self.val, batch_size=self.batch_size)
 
     def test_dataloader(self):
-        return DataLoader(self.test)
+        return DataLoader(self.test, batch_size=self.batch_size)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=1e-3)

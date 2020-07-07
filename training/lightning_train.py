@@ -10,10 +10,11 @@ def perform_training(
         advprop=False
 ):
     model = EfficientNetLightning(model_info.value,
+                                  batch_size=25,
                                   load_weights=load_weights,
                                   advprop=advprop)
 
-    trainer = pl.Trainer(max_epochs=2, gpus=1, auto_scale_batch_size=True)
+    trainer = pl.Trainer(max_epochs=2, gpus=1)
     trainer.fit(model)
 
 
