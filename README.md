@@ -53,3 +53,7 @@ from training.train import perform_efficient_net_fastai_training
 data, labels = load_data(dataset_info=get_data_sources()['stanford'], batch_size=16)
 learn, trial_info = perform_efficient_net_fastai_training(EfficientNets.b7, data, epochs=40, advprop=True)
 ```
+
+### Extras
+
+- [Configuring mlflow](https://databricks.com/blog/2019/10/17/managed-mlflow-now-available-on-databricks-community-edition.html)

@@ -5,7 +5,6 @@ from typing import Tuple
 from fastai.basic_data import DataBunch
 from fastai.basic_train import Learner
 from fastai.callbacks import CSVLogger, SaveModelCallback
-from fastai.callbacks.mlflow import MLFlowTracker
 from fastai.metrics import accuracy, LabelSmoothingCrossEntropy
 
 from config.structure import get_data_sources
@@ -26,7 +25,6 @@ def perform_efficient_net_fastai_training(
         load_weights=True,
         advprop=False
 ) -> Tuple[Learner, TrialInfo]:
-
     model = EfficientNet(model_info.value, load_weights, advprop)
 
     trial_info = TrialInfo(model_info, load_weights, advprop)
@@ -42,13 +40,7 @@ def perform_efficient_net_fastai_training(
                     path=trial_info.output_folder
                     ).to_fp16()
 
-    ml_tracker = MLFlowTracker(learn=learn,
-                               exp_name=str(trial_info.trial_id),
-                               params=asdict(model_info.value),
-                               nb_path=os.path.abspath(__file__),
-                               uri='https://community.cloud.databricks.com/?o=691382743079884')
-    learn.fit(epochs=epochs, lr=15e-4, wd=1e-3, callbacks=[CustomRecorder(learn, trial_info),
-                                                           ml_tracker])
+    learn.fit(epochs=epochs, lr=15e-4, wd=1e-3, callbacks=[CustomRecorder(learn, trial_info)])
 
     return learn, trial_info
 

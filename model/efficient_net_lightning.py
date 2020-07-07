@@ -25,7 +25,8 @@ class EfficientNetLightning(pl.LightningModule):
         super().__init__()
         self.batch_size = batch_size
         self.net_info = net_info
-        self.loss = LabelSmoothingCrossEntropy()
+        # self.loss = LabelSmoothingCrossEntropy()
+        self.loss = torch.nn.CrossEntropyLoss()
 
         global_params = net_info.network_params.global_params
         Conv2d = get_same_padding_conv2d(image_size=global_params.image_size)
@@ -104,24 +105,23 @@ class EfficientNetLightning(pl.LightningModule):
 
         return x
 
-    def training_step(self, train_batch):
+    def training_step(self, train_batch, batch_idx):
         x, y = train_batch
-        logits = self.forward(x)
-        loss = self.loss(logits, y)
+        loss = self.loss(self(x), torch.tensor(y, dtype=torch.long))
 
         logs = {'train_loss': loss}
         return {'loss': loss, 'log': logs}
 
-    def validation_step(self, val_batch):
-        x, y = val_batch
-        logits = self.forward(x)
-        loss = self.loss(logits, y)
-        return {'val_loss': loss}
+    # def validation_step(self, val_batch):
+    #     x, y = val_batch
+    #     logits = self.forward(x)
+    #     loss = self.loss(logits, y)
+    #     return {'val_loss': loss}
 
     def prepare_data(self):
         dataset_info = get_data_sources()['stanford']
         dataset_type = 'train'
-        image_size = 300,
+        image_size = 300
         dataset_location = dataset_info[dataset_type]['location']
 
         log.info(
@@ -130,20 +130,17 @@ class EfficientNetLightning(pl.LightningModule):
         dataset = CarsDataset(dataset_location, dataset_info, image_size)
 
         split_sizes = (len(dataset) * np.array([.8, .1, .1])).astype(np.int)
-        # if integer was badly rounded we need to add or substract some data
         split_sizes[-1] = split_sizes[-1] + (len(dataset) - sum(split_sizes))
-
-        self.train, self.val, self.test = random_split(dataset, split_sizes.tolist())
+        self.train_data, self.val, self.test = random_split(dataset, split_sizes.tolist())
 
     def train_dataloader(self):
-        return DataLoader(self.train, batch_size=self.batch_size, num_workers=8)
+        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
 
-    def val_dataloader(self):
-        return DataLoader(self.val, batch_size=self.batch_size, num_workers=8)
+    # def val_dataloader(self):
+    #     return DataLoader(self.val, batch_size=self.batch_size, num_workers=8)
 
     # def test_dataloader(self):
     #     return DataLoader(self.val, batch_size=self.batch_size, num_workers=8)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
-        return optimizer
+        return torch.optim.Adam(self.parameters(), lr=1e-3)
