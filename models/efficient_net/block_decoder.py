@@ -1,7 +1,7 @@
 import re
 from typing import List
 
-from structure.block_params import BlockParams
+from models.efficient_net.block_params import BlockParams
 
 
 class BlockDecoder(object):

@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 
-class CarsDataset(Dataset):
+class StanfordCarsDataset(Dataset):
     def __init__(self, dataset_location, dataset_info, image_size):
         self.image_dir = dataset_location
         self.image_fns = os.listdir(dataset_location)

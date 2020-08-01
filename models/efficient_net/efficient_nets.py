@@ -1,7 +1,7 @@
 from enum import Enum
 
-from structure.efficient_net_info import EfficientNetInfo
-from structure.network_params import NetworkParams, CompoundScalars, GlobalParams
+from models.efficient_net.efficient_net_info import EfficientNetInfo
+from models.efficient_net.network_params import NetworkParams, CompoundScalars, GlobalParams
 
 
 class EfficientNets(Enum):

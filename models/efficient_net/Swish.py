@@ -1,7 +1,7 @@
 from typing import Any
 
-from torch import nn
 import torch
+from torch import nn
 
 
 class SwishImplementation(torch.autograd.Function):
@@ -22,6 +22,7 @@ class SwishImplementation(torch.autograd.Function):
 class Swish(nn.Module):
     def forward(self, x):
         return x * torch.sigmoid(x)
+
 
 class MemoryEfficientSwish(nn.Module):
     def forward(self, x):

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from structure.network_params import NetworkParams
+from models.efficient_net.network_params import NetworkParams
 
 
 @dataclass

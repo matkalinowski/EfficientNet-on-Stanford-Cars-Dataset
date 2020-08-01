@@ -1,13 +1,13 @@
 from torch import nn
 from torch.utils import model_zoo
 
-from model.Swish import MemoryEfficientSwish
-from model.cars_dataset_lightning_module import CarsDatasetLightningModule
-from model.conv_2d import get_same_padding_conv2d
-from model.mb_conv_block import MBConvBlock
-from structure.block_decoder import BlockDecoder
-from structure.block_params import round_filters
-from structure.efficient_net_info import EfficientNetInfo
+from models.efficient_net.Swish import MemoryEfficientSwish
+from models.efficient_net.block_decoder import BlockDecoder
+from models.efficient_net.block_params import round_filters
+from models.efficient_net.conv_2d import get_same_padding_conv2d
+from models.efficient_net.efficient_net_info import EfficientNetInfo
+from models.efficient_net.mb_conv_block import MBConvBlock
+from training.cars_dataset_lightning_module import CarsDatasetLightningModule
 
 
 class EfficientNet(CarsDatasetLightningModule):

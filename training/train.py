@@ -4,9 +4,9 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import NeptuneLogger
 
-from model.efficient_net import EfficientNet
-from structure.efficient_nets import EfficientNets
-from structure.trial_info import TrialInfo
+from models.efficient_net.efficient_net import EfficientNet
+from models.efficient_net.efficient_nets import EfficientNets
+from training.trial_info import TrialInfo
 
 
 def perform_training(
@@ -15,7 +15,7 @@ def perform_training(
         advprop=False
 ):
     model = EfficientNet(
-        batch_size=10,
+        batch_size=24,
         net_info=model_info.value,
         load_weights=load_weights,
         advprop=advprop)
@@ -28,7 +28,7 @@ def perform_training(
     trial_info = TrialInfo(model_info, load_weights, advprop)
 
     checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder), period=2, mode='min')
-    trainer = pl.Trainer(max_epochs=32, gpus=1, logger=neptune_logger, checkpoint_callback=checkpoint,
+    trainer = pl.Trainer(max_epochs=20, gpus=1, logger=neptune_logger, checkpoint_callback=checkpoint,
                          fast_dev_run=True)
     trainer.fit(model)
     trainer.test(model)

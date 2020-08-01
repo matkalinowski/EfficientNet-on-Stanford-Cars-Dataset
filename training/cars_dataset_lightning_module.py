@@ -5,7 +5,8 @@ from fastai.layers import LabelSmoothingCrossEntropy
 from torch.utils.data import DataLoader, random_split
 
 from config.structure import get_data_sources
-from structure.cars_dataset import CarsDataset
+from datasets.stanford.cars_dataset import StanfordCarsDataset
+
 from utils.default_logging import configure_default_logging
 
 log = configure_default_logging(__name__)
@@ -53,7 +54,7 @@ class CarsDatasetLightningModule(pl.LightningModule):
         log.info(
             f'Loading data from: {dataset_location}; image size: {image_size}')
 
-        dataset = CarsDataset(dataset_location, dataset_info, image_size)
+        dataset = StanfordCarsDataset(dataset_location, dataset_info, image_size)
 
         split_sizes = (len(dataset) * np.array([.8, .1, .1])).astype(np.int)
         split_sizes[-1] = split_sizes[-1] + (len(dataset) - sum(split_sizes))

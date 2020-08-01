@@ -2,10 +2,11 @@ import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
 from uuid import UUID, uuid1
+
 import pandas as pd
 
 from config.structure import get_project_structure
-from structure.efficient_nets import EfficientNets
+from models.efficient_net.efficient_nets import EfficientNets
 from utils.folders import create_date_folder, mkdir_if_not_exists
 
 

@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass
 from typing import Tuple, Optional, List
 
-from structure.network_params import NetworkParams
+from models.efficient_net.network_params import NetworkParams
 
 
 def round_filters(filter_size, network_params: NetworkParams):
