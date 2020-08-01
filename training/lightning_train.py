@@ -16,7 +16,7 @@ def perform_training(
         advprop=False
 ):
     model = EfficientNetLightning(model_info.value,
-                                  batch_size=25,
+                                  batch_size=10,
                                   load_weights=load_weights,
                                   advprop=advprop)
 
@@ -29,7 +29,7 @@ def perform_training(
 
     checkpoint = ModelCheckpoint(filepath=trial_info.output_folder, period=2, mode='min')
     trainer = pl.Trainer(max_epochs=3, gpus=1, logger=neptune_logger, checkpoint_callback=checkpoint,
-                         # fast_dev_run=True
+                         fast_dev_run=True
                          )
     trainer.fit(model)
     trainer.test(model)

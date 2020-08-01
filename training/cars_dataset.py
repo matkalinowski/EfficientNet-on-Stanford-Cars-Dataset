@@ -1,13 +1,11 @@
 import os
 
-import numpy as np
 import pandas as pd
 import torch
 from PIL import Image
-from fastai.vision import get_transforms
+from sklearn import preprocessing
 from torch.utils.data import Dataset
 from torchvision import transforms
-from sklearn import preprocessing
 
 
 class CarsDataset(Dataset):
