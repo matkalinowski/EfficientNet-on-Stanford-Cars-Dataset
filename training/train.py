@@ -20,23 +20,14 @@ def perform_training(
         load_weights=load_weights,
         advprop=advprop)
 
-    neptune_logger = NeptuneLogger(
-        project_name="matkalinowski/sandbox",
-        experiment_name="e0"
-    )
-
     trial_info = TrialInfo(model_info, load_weights, advprop)
 
     checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder), period=2, mode='min')
-    trainer = pl.Trainer(max_epochs=20, gpus=1, logger=neptune_logger, checkpoint_callback=checkpoint,
+    trainer = pl.Trainer(max_epochs=20, checkpoint_callback=checkpoint,
                          fast_dev_run=True)
     trainer.fit(model)
     trainer.test(model)
 
-    for item in os.listdir(trial_info.output_folder):
-        neptune_logger.experiment.log_artifact(os.path.join(trial_info.output_folder, item))
-
-    neptune_logger.experiment.stop()
 
 
 def main():
