@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.logging.neptune import NeptuneLogger
 
-from model.efficient_net_lightning import EfficientNetLightning
+from model.efficient_net import EfficientNet
 from structure.efficient_nets import EfficientNets
 from structure.trial_info import TrialInfo
 
@@ -14,10 +14,11 @@ def perform_training(
         load_weights=True,
         advprop=False
 ):
-    model = EfficientNetLightning(model_info.value,
-                                  batch_size=10,
-                                  load_weights=load_weights,
-                                  advprop=advprop)
+    model = EfficientNet(
+        batch_size=10,
+        net_info=model_info.value,
+        load_weights=load_weights,
+        advprop=advprop)
 
     neptune_logger = NeptuneLogger(
         project_name="matkalinowski/sandbox",

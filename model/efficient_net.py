@@ -1,18 +1,19 @@
 from torch import nn
-
-from model.Swish import MemoryEfficientSwish
-from model.mb_conv_block import MBConvBlock
-from model.conv_2d import get_same_padding_conv2d
-from structure.efficient_net_info import EfficientNetInfo
-from structure.block_decoder import BlockDecoder
-from structure.block_params import round_filters
 from torch.utils import model_zoo
 
+from model.Swish import MemoryEfficientSwish
+from model.cars_dataset_lightning_module import CarsDatasetLightningModule
+from model.conv_2d import get_same_padding_conv2d
+from model.mb_conv_block import MBConvBlock
+from structure.block_decoder import BlockDecoder
+from structure.block_params import round_filters
+from structure.efficient_net_info import EfficientNetInfo
 
-class EfficientNet(nn.Module):
 
-    def __init__(self, net_info: EfficientNetInfo, load_weights=False, advprop=False):
-        super().__init__()
+class EfficientNet(CarsDatasetLightningModule):
+
+    def __init__(self, batch_size, net_info: EfficientNetInfo, load_weights=False, advprop=False):
+        super().__init__(batch_size)
         self.net_info = net_info
 
         global_params = net_info.network_params.global_params
@@ -55,7 +56,6 @@ class EfficientNet(nn.Module):
             for _ in range(block_args.num_repeat - 1):
                 blocks.append(MBConvBlock(block_args, global_params))
         return blocks
-
 
     def extract_features(self, inputs):
         """ Returns output of the final convolution layer """
