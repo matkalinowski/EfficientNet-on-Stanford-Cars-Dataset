@@ -34,12 +34,12 @@ class CarsDatasetLightningModule(pl.LightningModule):
     def test_step(self, test_batch, batch_idx):
         return self.single_step(test_batch, batch_idx, 'test_loss')
 
-    def validation_end(self, outputs):
+    def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         tensorboard_logs = {'val_loss': avg_loss}
         return {'avg_val_loss': avg_loss, 'log': tensorboard_logs}
 
-    def test_end(self, outputs):
+    def test_epoch_end(self, outputs):
         avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
         tensorboard_logs = {'test_loss': avg_loss}
         return {'avg_test_loss': avg_loss, 'log': tensorboard_logs}
@@ -59,15 +59,12 @@ class CarsDatasetLightningModule(pl.LightningModule):
         split_sizes[-1] = split_sizes[-1] + (len(dataset) - sum(split_sizes))
         self.train_data, self.val, self.test = random_split(dataset, split_sizes.tolist())
 
-    @pl.data_loader
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
 
-    @pl.data_loader
     def val_dataloader(self):
         return DataLoader(self.val, batch_size=self.batch_size)
 
-    @pl.data_loader
     def test_dataloader(self):
         return DataLoader(self.test, batch_size=self.batch_size)
 
