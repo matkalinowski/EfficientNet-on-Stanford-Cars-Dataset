@@ -1,8 +1,5 @@
-import os
-
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import NeptuneLogger
 
 from models.efficient_net.efficient_net import EfficientNet
 from models.efficient_net.efficient_nets import EfficientNets
@@ -29,10 +26,5 @@ def perform_training(
     trainer.test(model)
 
 
-
-def main():
-    perform_training(EfficientNets.b0)
-
-
 if __name__ == '__main__':
-    main()
+    perform_training(EfficientNets.b0)
