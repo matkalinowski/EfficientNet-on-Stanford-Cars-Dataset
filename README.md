@@ -42,17 +42,6 @@ Details about the models are below:
 | `efficientnet-b6` |    43M   |    84.0    |      ✓      |
 | `efficientnet-b7` |    66M   |    84.4    |      ✓      |
 
-### Example usage:
-
-```python
-from config.structure import get_data_sources
-from structure.efficient_nets import EfficientNets
-from fastai_training.data import load_data
-from fastai_training.train import perform_efficient_net_fastai_training
-
-data, labels = load_data(dataset_info=get_data_sources()['stanford'], batch_size=16)
-learn, trial_info = perform_efficient_net_fastai_training(EfficientNets.b7, data, epochs=40, advprop=True)
-```
 
 ### Extras
 

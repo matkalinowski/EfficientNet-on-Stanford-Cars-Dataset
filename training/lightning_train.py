@@ -1,6 +1,5 @@
 import os
 
-import neptune
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.logging.neptune import NeptuneLogger
