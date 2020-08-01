@@ -1,3 +1,4 @@
+import sys
 from time import time
 from typing import List
 
@@ -7,7 +8,6 @@ from structure.trial_info import TrialInfo
 from utils.default_logging import configure_default_logging
 from utils.files import get_file_path_with_timestamp
 from utils.telegram import TelegramUpdater
-import sys
 
 log = configure_default_logging(__name__)
 
@@ -49,7 +49,6 @@ class CustomRecorder(Recorder):
         else:
             self._log_execution(f'Training successful. Results are stored in: {self.trial_info.output_folder}')
             self.send_images()
-
 
     def send_images(self):
         self.save_and_send_image(img=self.learn.recorder.plot_losses(return_fig=True),
