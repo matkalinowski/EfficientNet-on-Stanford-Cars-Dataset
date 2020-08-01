@@ -1,3 +1,5 @@
+from abc import ABC
+
 import numpy as np
 import pytorch_lightning as pl
 import torch
@@ -12,7 +14,7 @@ from utils.default_logging import configure_default_logging
 log = configure_default_logging(__name__)
 
 
-class CarsDatasetLightningModule(pl.LightningModule):
+class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
 
     def __init__(self, batch_size):
         super().__init__()
