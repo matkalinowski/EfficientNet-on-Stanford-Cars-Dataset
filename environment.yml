@@ -16,5 +16,5 @@ dependencies:
     - pandas==1.0.3
     - python-telegram-bot==12.7
     - pytorch-lightning==0.8.4
-prefix: /Users/mkalinowski/miniconda3/envs/dnn
+
 

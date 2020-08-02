@@ -2,8 +2,6 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-
-
 from copy import deepcopy
 
 from models.efficient_net.Swish import MemoryEfficientSwish, Swish
