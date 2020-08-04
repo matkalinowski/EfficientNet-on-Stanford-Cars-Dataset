@@ -12,8 +12,8 @@ from training.cars_dataset_lightning_module import StanfordCarsDatasetLightningM
 
 class EfficientNet(StanfordCarsDatasetLightningModule):
 
-    def __init__(self, batch_size, net_info: EfficientNetInfo, load_weights=False, advprop=False):
-        super().__init__(batch_size)
+    def __init__(self, batch_size, image_size, net_info: EfficientNetInfo, load_weights=False, advprop=False):
+        super().__init__(batch_size, image_size)
         self.net_info = net_info
 
         global_params = net_info.network_params.global_params
