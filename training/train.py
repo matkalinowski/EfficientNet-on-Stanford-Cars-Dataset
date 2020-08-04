@@ -21,7 +21,7 @@ def perform_training(
     trial_info = TrialInfo(model_info, load_weights, advprop)
 
     checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder), period=2, mode='min')
-    trainer = pl.Trainer(max_epochs=20, checkpoint_callback=checkpoint, fast_dev_run=True)
+    trainer = pl.Trainer(max_epochs=20, gpus=1, checkpoint_callback=checkpoint, fast_dev_run=True)
     trainer.fit(model)
     trainer.test(model)
 
