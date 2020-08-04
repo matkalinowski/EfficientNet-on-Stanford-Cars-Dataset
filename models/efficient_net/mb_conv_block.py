@@ -62,7 +62,7 @@ class MBConvBlock(nn.Module):
         self._project_conv = Conv2d(in_channels=output_channels, out_channels=final_oup, kernel_size=1, bias=False)
         self._bn2 = nn.BatchNorm2d(num_features=final_oup, momentum=global_params.batch_norm_momentum,
                                    eps=global_params.batch_norm_epsilon)
-        self._swish = MemoryEfficientSwish()
+        self._swish = Swish()
 
     def forward(self, inputs, drop_connect_rate=None):
         """
@@ -92,13 +92,6 @@ class MBConvBlock(nn.Module):
                 x = self._drop_connect(x, p=drop_connect_rate)
             x = x + inputs  # skip connection
         return x
-
-    def set_swish(self, memory_efficient=True):
-        """Sets swish function as memory efficient (for training) or standard (for export)"""
-        if memory_efficient:
-            self._swish = MemoryEfficientSwish()
-        else:
-            self._swish = Swish()
 
     def _drop_connect(self, inputs, p):
         """ Drop connect. """
