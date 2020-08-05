@@ -1,7 +1,7 @@
 from torch import nn
 from torch.utils import model_zoo
 
-from models.efficient_net.Swish import MemoryEfficientSwish
+from models.efficient_net.Swish import MemoryEfficientSwish, Swish
 from models.efficient_net.block_decoder import BlockDecoder
 from models.efficient_net.block_params import round_filters
 from models.efficient_net.conv_2d import get_same_padding_conv2d
@@ -12,8 +12,8 @@ from training.cars_dataset_lightning_module import StanfordCarsDatasetLightningM
 
 class EfficientNet(StanfordCarsDatasetLightningModule):
 
-    def __init__(self, batch_size, net_info: EfficientNetInfo, load_weights=False, advprop=False):
-        super().__init__(batch_size)
+    def __init__(self, batch_size, image_size, net_info: EfficientNetInfo, load_weights=False, advprop=False):
+        super().__init__(batch_size, image_size)
         self.net_info = net_info
 
         global_params = net_info.network_params.global_params
@@ -36,7 +36,7 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
         self._avg_pooling = nn.AdaptiveAvgPool2d(1)
         self._dropout = nn.Dropout(global_params.dropout_rate)
         self._fc = nn.Linear(out_channels, global_params.num_classes)
-        self._swish = MemoryEfficientSwish()
+        self._swish = Swish()
 
         if load_weights:
             self.load_state_dict(

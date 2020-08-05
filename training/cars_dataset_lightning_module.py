@@ -16,9 +16,10 @@ log = configure_default_logging(__name__)
 
 class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
 
-    def __init__(self, batch_size):
+    def __init__(self, batch_size, image_size):
         super().__init__()
         self.batch_size = batch_size
+        self.image_size = image_size
         self.loss = LabelSmoothingCrossEntropy()
 
     def single_step(self, batch, batch_idx, loss_type):
@@ -50,13 +51,13 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
     def prepare_data(self):
         dataset_info = get_data_sources()['stanford']
         dataset_type = 'train'
-        image_size = 300
+
         dataset_location = dataset_info[dataset_type]['location']
 
         log.info(
-            f'Loading data from: {dataset_location}; image size: {image_size}')
+            f'Loading data from: {dataset_location}; image size: {self.image_size}')
 
-        dataset = StanfordCarsDataset(dataset_location, dataset_info, image_size)
+        dataset = StanfordCarsDataset(dataset_location, dataset_info, self.image_size)
 
         split_sizes = (len(dataset) * np.array([.8, .1, .1])).astype(np.int)
         split_sizes[-1] = split_sizes[-1] + (len(dataset) - sum(split_sizes))
