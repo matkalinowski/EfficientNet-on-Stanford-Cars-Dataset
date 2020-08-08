@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 
-from models.mobile_nets import create_next_layer_calculator
+from models.mobile_nets.mobile_net_utils import create_next_layer_calculator
 
 
 class ConvBlock(nn.Module):

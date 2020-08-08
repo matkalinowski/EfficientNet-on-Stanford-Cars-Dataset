@@ -2,6 +2,12 @@
 This module contains few methods that will be handy in creation of MobileNet architectures.
 """
 
+import torch.nn as nn
+
+
+def scale_channels(iterable, scaling_parameter):
+    return list(map(lambda ch: int(ch * scaling_parameter), iterable))
+
 
 # MobileNet 1
 def create_next_layer_calculator(input_n, output_n, scaling_parameter):
@@ -39,7 +45,7 @@ def create_next_layer_calculator(input_n, output_n, scaling_parameter):
 
 
 # MobileNet 2
-def parameter_generator(parameters: dict):
+def parameter_generator_v2(parameters: dict):
     """
     Generator that is used to fill specific bottleneck blocks with used parameters.
     During iteration, this generator will also held and yield information about in_channels.
@@ -48,7 +54,7 @@ def parameter_generator(parameters: dict):
         out_channels - out_channels at the end of the bottleneck,
         strides - strides used in the specific bottleneck block
         n - number of blocks used in the section. Blocks parameters vary between each other. Only last layer of this
-        n-block changes the channel number on its output. Every layer in between is an identity
+        n-block changes the channel number on its output. Every layer in between is an identity.
 
     """
 
@@ -70,3 +76,30 @@ def parameter_generator(parameters: dict):
                 expansion=expansion)
             if i == 1:
                 in_channels = out_channels  # Replacing in_channels for next iteration/layer
+
+
+# MobileNet 3
+def parameter_generator_v3(parameters: dict):
+
+    # It will be easier to work with those params if we transform them to list of tuples and make an
+    # generator afterwards.
+
+    parameters = list(zip(
+        *[value for key, value in parameters.items()]
+    ))
+
+    in_channels = 3  # First layer in channels -> RGB
+
+    for layer_parameter in parameters:
+        out_channels, expansion, kernel_size, stride, squeeze_excitation, hard_swish = layer_parameter
+        yield dict(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                expansion=expansion,
+                kernel_size=kernel_size,
+                stride=stride,
+                squeeze_excitation=squeeze_excitation,
+                hard_swish=hard_swish)
+
+        in_channels = out_channels  # Replacing in_channels for next iteration/layer
+
