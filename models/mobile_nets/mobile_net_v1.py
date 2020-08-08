@@ -133,9 +133,3 @@ class MobileNetV1(nn.Module):
         x = self.model(input)
         x = x.view(-1, self.channel_calculator(as_is=True)["in_channels"])
         return self.classifier(x)
-
-
-if __name__ == "__main__":
-    model = MobileNetV1(100, 1)
-    input = torch.zeros(1, 3, 224, 224)
-    print(model(input))

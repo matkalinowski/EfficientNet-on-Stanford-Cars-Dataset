@@ -111,9 +111,3 @@ class MobileNetV2(nn.Module):
     def forward(self, input):
         x = self.model(input)
         return x.view(x.size(0), -1)
-
-
-if __name__ == "__main__":
-    model = MobileNetV2(mobile2_params, 100, 1)
-    input = torch.zeros(1, 3, 224, 224)
-    print(model(input).size() == torch.Size([1, 100]))
