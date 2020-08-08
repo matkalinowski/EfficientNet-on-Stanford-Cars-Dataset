@@ -47,7 +47,8 @@ def parameter_generator(parameters: dict):
     :param parameters: dictionary with three keys:
         out_channels - out_channels at the end of the bottleneck,
         strides - strides used in the specific bottleneck block
-        n - number of blocks used in the section
+        n - number of blocks used in the section. Blocks parameters vary between each other. Only last layer of this
+        n-block changes the channel number on its output. Every layer in between is an identity
 
     """
 
@@ -60,13 +61,12 @@ def parameter_generator(parameters: dict):
     in_channels = 3  # First layer in channels -> RGB
 
     for layer_parameter in parameters:
-        out_channels, stride, n = layer_parameter
-
-        yield dict(
-            in_channels=in_channels,
-            out_channels=out_channels,
-            stride=stride,
-            n=n)
-
-        in_channels = out_channels  # Replacing in_channels for next iteration/layer
-
+        out_channels, stride, n, expansion = layer_parameter
+        for i in range(1, n + 1):
+            yield dict(
+                in_channels=in_channels,
+                out_channels=out_channels if i == 1 else in_channels,
+                stride=stride if i == n else 1,
+                expansion=expansion)
+            if i == 1:
+                in_channels = out_channels  # Replacing in_channels for next iteration/layer

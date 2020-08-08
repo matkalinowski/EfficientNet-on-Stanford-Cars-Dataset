@@ -28,31 +28,38 @@ class BottleNeckBlock(nn.Module):
     BatchNormalization
     """
 
-    def __init__(self, in_channels, out_channels, n, stride=1,  expansion=1, first=False):
+    def __init__(self, in_channels, out_channels, stride=1, expansion=1, n=1):
         super().__init__()
 
         expanded_channels = in_channels * expansion
 
-        self.first = first
-
-        self.layers = [nn.Conv2d(in_channels, expanded_channels, 1, bias=False),
-                       nn.BatchNorm2d(expanded_channels),
-                       nn.ReLU6(),
-                       nn.Conv2d(expanded_channels, expanded_channels, 3, stride=stride, padding=1,
-                                 groups=expanded_channels, bias=False),
-                       nn.BatchNorm2d(expanded_channels),
-                       nn.ReLU6(),
-                       nn.Conv2d(expanded_channels, out_channels, 1, bias=False),
-                       nn.BatchNorm2d(out_channels)]
+        # If possible, during forward method there should be a residual connection. This flag will be used in the
+        # forward method to indicate that.
+        self.identity = stride == 1 and in_channels == out_channels
 
         self.block = nn.Sequential(
-            *[nn.Sequential(*self.layers) for _ in range(n)]
-        )
+            nn.Conv2d(in_channels, expanded_channels, 1, bias=False),
+            nn.BatchNorm2d(expanded_channels),
+            nn.ReLU6(inplace=True),
+            nn.Conv2d(expanded_channels, expanded_channels, 3, stride=stride, padding=1,
+                      groups=expanded_channels, bias=False),
+            nn.BatchNorm2d(expanded_channels),
+            nn.ReLU6(inplace=True),
+            nn.Conv2d(expanded_channels, out_channels, 1, bias=False),
+            nn.BatchNorm2d(out_channels))
+
+        # In first bottleneck, expansion rate is equal to 1. When this occur, 1x1 depthwise convolution is not doing any
+        # transformations
+        if expansion == 1:
+            self.block = self.block[3:]
 
     def forward(self, input):
-        residual = input if not self.first else 0
-        x = self.block(input)
-        return x + residual
+        print(input.shape)
+
+        if self.identity:
+            return input + self.block(input)
+        else:
+            return self.block(input)
 
 
 class MobileNetV2(nn.Module):
@@ -65,18 +72,20 @@ class MobileNetV2(nn.Module):
         super().__init__()
 
         self.n_classes = n_classes
+        self.scaling_parameter = scaling_parameter
 
         # Original parameters presented in the paper.
         self.layers_params = {
-            'out_channels': list(map(lambda x: int(x * scaling_parameter), [32, 16, 24, 32, 64, 96, 160, 320])),
+            'out_channels': self.scale_channels([32, 16, 24, 32, 64, 96, 160, 320]),
             'strides': [2, 1, 2, 2, 2, 1, 2, 1],
-            'n': [1, 1, 2, 3, 4, 3, 3, 1]}
+            'n': [1, 1, 2, 3, 4, 3, 3, 1],
+            'expansion': [1, 1, 6, 6, 6, 6, 6, 6]}
 
         self.layer_params_generator = parameter_generator(self.layers_params)
 
         self.layers = []
 
-        # First convolutional layer followed by BatchNormalization
+        # First convolutional layer followed by BatchNormalization and ReLU activation.
         args_first_layer = next(self.layer_params_generator)
         self.layers.append(
             nn.Sequential(
@@ -85,23 +94,29 @@ class MobileNetV2(nn.Module):
                     out_channels=args_first_layer["out_channels"],
                     stride=args_first_layer["stride"],
                     kernel_size=3,
-                    padding=1),
-                nn.BatchNorm2d(args_first_layer["out_channels"])))
+                    padding=1,
+                    bias=False),
+                nn.BatchNorm2d(args_first_layer["out_channels"]),
+                nn.ReLU6(inplace=True),
+            ))
 
         # BottleNeck convolutions
-        for parameter in self.layer_params_generator:
-            self.layers.append(BottleNeckBlock(expansion=6, first=False, **parameter))
+        for parameters in self.layer_params_generator:
+            self.layers.append(BottleNeckBlock(parameters["in_channels"],
+                                               parameters['out_channels'],
+                                               parameters["stride"],
+                                               parameters["expansion"]).block)
 
         # Last part of MobileNet2 contains 1x1 convolution that significantly increase number of channels, transform the
         # tensor using average pooling, and then do the prediction using classifier which is also 1x1 convolution.
         self.layers.append(nn.Sequential(
             nn.Conv2d(in_channels=self.layers_params["out_channels"][-1],
-                      out_channels=1280*scaling_parameter,
+                      out_channels=1280 * scaling_parameter,
                       kernel_size=1,
                       stride=1,
                       bias=False),
             nn.AvgPool2d(7, stride=1),
-            nn.Conv2d(1280*scaling_parameter, self.n_classes, kernel_size=1, stride=1, bias=False)))
+            nn.Conv2d(1280 * scaling_parameter, self.n_classes, kernel_size=1, stride=1, bias=False)))
 
         self.model = nn.Sequential(*self.layers)
 
@@ -109,8 +124,12 @@ class MobileNetV2(nn.Module):
         x = self.model(input)
         return x.view(x.size(0), -1)
 
+    def scale_channels(self, list_of_channels):
+        return list(map(lambda ch: int(ch * self.scaling_parameter), list_of_channels))
+
 
 if __name__ == "__main__":
     model = MobileNetV2(100, 1)
     input = torch.zeros(1, 3, 224, 224)
     print(model(input))
+    # print(model)
