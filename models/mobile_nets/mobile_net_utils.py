@@ -79,16 +79,13 @@ def parameter_generator_v2(parameters: dict):
 
 
 # MobileNet 3
-def parameter_generator_v3(parameters: dict):
+def parameter_generator_v3(parameters: dict, in_channels):
 
     # It will be easier to work with those params if we transform them to list of tuples and make an
     # generator afterwards.
-
     parameters = list(zip(
         *[value for key, value in parameters.items()]
     ))
-
-    in_channels = 3  # First layer in channels -> RGB
 
     for layer_parameter in parameters:
         out_channels, expansion, kernel_size, stride, squeeze_excitation, hard_swish = layer_parameter

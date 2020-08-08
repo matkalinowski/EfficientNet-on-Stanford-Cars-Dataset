@@ -3,7 +3,7 @@ import pytest
 import torch
 
 from models.mobile_nets import MobileNetV1, MobileNetV2, MobileNetV3
-from models.mobile_nets.mobile_net_parameters import mobile2_params
+from models.mobile_nets.mobile_net_parameters import mobile2_params, mobile3_small, mobile3_large
 
 input_tensor = None
 
@@ -35,8 +35,19 @@ def test_if_mobile_v2_with_scaling_forwards_tensor():
 
 
 def test_if_mobile_v3_small_forwards_tensor():
-    assert True
+    model = MobileNetV3(mobile3_small, "small", 100, 1)
+    assert model(input_tensor).size() == torch.Size([1, 100])
+
+def test_if_mobile_v3_small_with_scaling_forwards_tensor():
+    model = MobileNetV3(mobile3_small, "small", 100, 0.75)
+    assert model(input_tensor).size() == torch.Size([1, 100])
 
 
 def test_if_mobile_v3_large_forwards_tensor():
-    assert True
+    model = MobileNetV3(mobile3_large, "large", 100, 1)
+    assert model(input_tensor).size() == torch.Size([1, 100])
+
+
+def test_if_mobile_v3_large_with_scaling_forwards_tensor():
+    model = MobileNetV3(mobile3_large, "large", 100, 0.85)
+    assert model(input_tensor).size() == torch.Size([1, 100])
