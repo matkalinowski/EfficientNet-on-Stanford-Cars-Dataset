@@ -4,7 +4,7 @@ from typing import List
 
 from fastai.basic_train import Recorder, Learner, Union
 
-from structure.trial_info import TrialInfo
+from training.trial_info import TrialInfo
 from utils.default_logging import configure_default_logging
 from utils.files import get_file_path_with_timestamp
 from utils.telegram import TelegramUpdater

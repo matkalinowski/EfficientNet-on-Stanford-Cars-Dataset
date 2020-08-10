@@ -1,7 +1,8 @@
 import torch.nn as nn
-import torch
+
 
 from models.mobile_nets.mobile_net_utils import create_next_layer_calculator
+from training.cars_dataset_lightning_module import StanfordCarsDatasetLightningModule
 
 
 class ConvBlock(nn.Module):
@@ -11,7 +12,7 @@ class ConvBlock(nn.Module):
     activation.
     """
 
-    def __init__(self, in_channels, out_channels, stride):
+    def __init__(self, in_channels, out_channels):
         super().__init__()
 
         self.block = nn.Sequential(
@@ -26,8 +27,7 @@ class ConvBlock(nn.Module):
 
 
 class DepthwiseConvBlock(nn.Module):
-
-  """
+    """
   Depthwise Separable Convolution was intruduced by Google research team in
   their MobileNet1 implementation.
 
@@ -46,44 +46,42 @@ class DepthwiseConvBlock(nn.Module):
   normalization layers.
   """
 
-  def __init__(self, in_channels, out_channels, stride=1):
-    super().__init__()
+    def __init__(self, in_channels, out_channels, stride=1):
+        super().__init__()
 
-    self.block = \
-      nn.Sequential(
-        nn.Conv2d(in_channels, in_channels, 3, stride, 1),
-        nn.BatchNorm2d(in_channels),
-        nn.ReLU(),
-        nn.Conv2d(in_channels, out_channels, (1, 1), stride=1, padding=0),
-        nn.BatchNorm2d(out_channels),
-        nn.ReLU()
-      )
+        self.block = \
+            nn.Sequential(
+                nn.Conv2d(in_channels, in_channels, 3, stride, 1),
+                nn.BatchNorm2d(in_channels),
+                nn.ReLU(),
+                nn.Conv2d(in_channels, out_channels, (1, 1), stride=1, padding=0),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU()
+            )
 
-  def forward(self, input):
-    return self.block(input)
+    def forward(self, input):
+        return self.block(input)
 
 
 class Classifier(nn.Module):
-
-  """
+    """
   This block will be used for final classification. It will contain
   FullyConnected layer with given output neurons (number of classes) followed by
   SoftMax activation.
   """
 
-  def __init__(self, in_channels, n_classes):
-    super().__init__()
+    def __init__(self, in_channels, n_classes):
+        super().__init__()
 
-    self.block = nn.Sequential(
-        nn.Linear(in_channels, n_classes)
-    )
+        self.block = nn.Sequential(
+            nn.Linear(in_channels, n_classes)
+        )
 
-  def forward(self, input):
+    def forward(self, input):
+        return self.block(input)
 
-    return self.block(input)
 
-
-class MobileNetV1(nn.Module):
+class MobileNetV1(StanfordCarsDatasetLightningModule):
     """
     Implementation of MobileNet. Architecture that was intruduced by Google's
     research team in april 2017. Biggest advantage of this architecture is by far
@@ -94,8 +92,8 @@ class MobileNetV1(nn.Module):
     original paper, depthwise convolutions are most computation consuming.
     """
 
-    def __init__(self, n_classes, scaling_parameter=1):
-        super().__init__()
+    def __init__(self, n_classes, scaling_parameter=1, batch_size=128, image_size=224):
+        super().__init__(batch_size, image_size)
 
         self.n_classes = n_classes
 
@@ -107,7 +105,7 @@ class MobileNetV1(nn.Module):
         self.layers = []
 
         # Starting convolution
-        self.layers.append(ConvBlock(stride=2, **n_channels))
+        self.layers.append(ConvBlock(**n_channels))
 
         # Depthwise convolutions
         stride_out_channel_params_list = [
