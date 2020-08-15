@@ -12,13 +12,11 @@ This project uses virutalenv as a package manager. To install it automatically u
 #### If you are using windows:
 - Make sure that python.exe and pip.exe are in the path system variable. 
     - In case of environment variables order matters. If you have multiple python instances make sure that version 3.8.5 is on top.
-- [install cygwin](https://cygwin.com/install.html)
 
 #### Common part:
 - Go to the project root,
-- on Windows execute: sh setup.sh
-    - Linux systems: setup.sh
-
+- execute: setup.sh
+    - if this does not work you can execute commands line by line
 
 ### About EfficientNet
 
