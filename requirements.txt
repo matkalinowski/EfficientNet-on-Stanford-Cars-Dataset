@@ -1,0 +1,8 @@
+torch==1.6.0+cu101
+torchvision==0.7.0+cu101
+matplotlib==3.3.1
+neptune-client==0.4.119
+pandas==1.1.0
+python-telegram-bot==12.8
+pytorch-lightning==0.8.5
+sklearn==0.23.2

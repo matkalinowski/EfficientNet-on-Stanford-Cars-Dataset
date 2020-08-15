@@ -1,12 +1,28 @@
-This project is my implementation of EfficientNet, based on [lukemelas implementation](https://github.com/lukemelas/EfficientNet-PyTorch), this repository serves also as a source of pretrained network parameters.
+This project is thesis code for my postgraduate studies- Deep neural networks, applications in digital media.
 
-You can find original implementation [here](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet).
+Project implements EfficientNet and it's training on Stanford Cars dataset with possibility of extension.
+You can find other networks comparision [here](https://paperswithcode.com/sota/fine-grained-image-classification-on-stanford)
+
+You can find original implementation in tensorflow [here](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet).
+
+### Howto
+
+This project uses virutalenv as a package manager. To install it automatically use setup.sh script. I was using python 3.8.5.
+
+#### If you are using windows:
+- Make sure that python.exe and pip.exe are in the path system variable. 
+    - In case of environment variables order matters. If you have multiple python instances make sure that version 3.8.5 is on top.
+- [install cygwin](https://cygwin.com/install.html)
+
+#### Common part:
+- Go to the project root,
+- on Windows execute: sh setup.sh
+    - Linux systems: setup.sh
+
 
 ### About EfficientNet
 
-If you're new to EfficientNets, here is an explanation straight from the official TensorFlow implementation: 
-
-EfficientNets are a family of image classification models, which achieve state-of-the-art accuracy, yet being an order-of-magnitude smaller and faster than previous models. We develop EfficientNets based on AutoML and Compound Scaling. In particular, we first use [AutoML Mobile framework](https://ai.googleblog.com/2018/08/mnasnet-towards-automating-design-of.html) to develop a mobile-size baseline network, named as EfficientNet-B0; Then, we use the compound scaling method to scale up this baseline to obtain EfficientNet-B1 to B7.
+EfficientNets are a family of image classification models, which achieve state-of-the-art accuracy, yet being an order-of-magnitude smaller and faster than previous models. EfficientNets are based on AutoML and Compound Scaling. In particular, google first used [AutoML Mobile framework](https://ai.googleblog.com/2018/08/mnasnet-towards-automating-design-of.html) to develop a mobile-size baseline network, named as EfficientNet-B0; Then, used the compound scaling method to scale up this baseline to obtain EfficientNet-B1 to B7.
 
 <table border="0">
 <tr>
@@ -42,7 +58,5 @@ Details about the models are below:
 | `efficientnet-b6` |    43M   |    84.0    |      ✓      |
 | `efficientnet-b7` |    66M   |    84.4    |      ✓      |
 
-
 ### Extras
-
-- [Configuring mlflow](https://databricks.com/blog/2019/10/17/managed-mlflow-now-available-on-databricks-community-edition.html)
+- [lukemelas implementation](https://github.com/lukemelas/EfficientNet-PyTorch), this repository serves also as a source of pretrained network parameters.

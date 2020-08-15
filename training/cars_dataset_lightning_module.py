@@ -3,11 +3,11 @@ from abc import ABC
 import numpy as np
 import pytorch_lightning as pl
 import torch
-from fastai.layers import LabelSmoothingCrossEntropy
 from torch.utils.data import DataLoader, random_split
 
 from config.structure import get_data_sources
 from datasets.stanford.cars_dataset import StanfordCarsDataset
+from training.label_smoothing_cross_entropy import LabelSmoothingCrossEntropy
 
 from utils.default_logging import configure_default_logging
 
