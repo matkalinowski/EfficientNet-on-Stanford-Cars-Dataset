@@ -1,7 +1,7 @@
 from torch import nn
 from torch.utils import model_zoo
 
-from models.efficient_net.Swish import MemoryEfficientSwish, Swish
+from models.efficient_net.Swish import Swish
 from models.efficient_net.block_decoder import BlockDecoder
 from models.efficient_net.block_params import round_filters
 from models.efficient_net.conv_2d import get_same_padding_conv2d

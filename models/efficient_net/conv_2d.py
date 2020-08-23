@@ -2,7 +2,7 @@ import math
 from functools import partial
 
 from torch import nn
-from torch.nn import functional as F
+from torch.nn import functional as F, Identity
 
 
 def get_same_padding_conv2d(image_size=None):
@@ -31,14 +31,6 @@ class Conv2dDynamicSamePadding(nn.Conv2d):
         if pad_h > 0 or pad_w > 0:
             x = F.pad(x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2])
         return F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
-
-
-class Identity(nn.Module):
-    def __init__(self, ):
-        super(Identity, self).__init__()
-
-    def forward(self, input):
-        return input
 
 
 class Conv2dStaticSamePadding(nn.Conv2d):
