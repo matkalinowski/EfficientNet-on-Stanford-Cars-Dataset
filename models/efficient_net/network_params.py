@@ -13,7 +13,6 @@ class GlobalParams:
     dropout_rate: float
 
     num_classes: int = 1000
-    image_size: int = 300
     in_channels: int = 3
 
     # https://github.com/lukemelas/EfficientNet-PyTorch/issues/3

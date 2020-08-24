@@ -13,6 +13,8 @@ from torchvision import transforms
 from collections import namedtuple
 import torch.nn as nn
 
+from models.efficient_net.conv_2d import Conv2dStaticSamePadding, Conv2dDynamicSamePadding
+
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -283,7 +285,8 @@ def calculate_FLOPs_scale(model, input_size, multiply_adds=False, use_gpu=False)
     def foo(net):
         childrens = list(net.children())
         if not childrens:
-            if isinstance(net, torch.nn.Conv2d):
+            if isinstance(net, torch.nn.Conv2d) or isinstance(net, Conv2dStaticSamePadding):
+                print('Conv2dStaticSamePadding')
                 net.register_forward_hook(conv_hook)
             if isinstance(net, torch.nn.ConvTranspose2d):
                 net.register_forward_hook(deconv_hook)

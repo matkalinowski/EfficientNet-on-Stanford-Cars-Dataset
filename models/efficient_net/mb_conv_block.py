@@ -24,7 +24,7 @@ class MBConvBlock(nn.Module):
         has_se (bool): Whether the block contains a Squeeze and Excitation layer.
     """
 
-    def __init__(self, block_args: BlockParams, global_params: GlobalParams):
+    def __init__(self, block_args: BlockParams, global_params: GlobalParams, image_size: int):
 
         super().__init__()
         self._block_args = deepcopy(block_args)
@@ -34,7 +34,7 @@ class MBConvBlock(nn.Module):
         output_channels = self._block_args.input_filters * self._block_args.expand_ratio
 
         # Get static or dynamic convolution depending on image size
-        Conv2d = get_same_padding_conv2d(image_size=global_params.image_size)
+        Conv2d = get_same_padding_conv2d(image_size=None)
 
         # Expansion phase
         if self._block_args.expand_ratio != 1:
@@ -62,7 +62,7 @@ class MBConvBlock(nn.Module):
         self._project_conv = Conv2d(in_channels=output_channels, out_channels=final_oup, kernel_size=1, bias=False)
         self._bn2 = nn.BatchNorm2d(num_features=final_oup, momentum=global_params.batch_norm_momentum,
                                    eps=global_params.batch_norm_epsilon)
-        self._swish = Swish()
+        self._swish = nn.ReLU()
 
     def forward(self, inputs, drop_connect_rate=None):
         """

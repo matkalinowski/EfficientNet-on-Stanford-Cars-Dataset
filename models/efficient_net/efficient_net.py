@@ -12,12 +12,13 @@ from training.cars_dataset_lightning_module import StanfordCarsDatasetLightningM
 
 class EfficientNet(StanfordCarsDatasetLightningModule):
 
-    def __init__(self, batch_size, image_size, net_info: EfficientNetInfo, load_weights=False, advprop=False):
+    def __init__(self, batch_size, net_info: EfficientNetInfo, load_weights=False, advprop=False):
+        image_size = net_info.network_params.compound_scalars.resolution
         super().__init__(batch_size, image_size)
         self.net_info = net_info
 
         global_params = net_info.network_params.global_params
-        Conv2d = get_same_padding_conv2d(image_size=global_params.image_size)
+        Conv2d = get_same_padding_conv2d(image_size=image_size)
 
         out_channels = round_filters(32, net_info.network_params)
         self._conv_stem = Conv2d(in_channels=global_params.in_channels, kernel_size=3, stride=2,
@@ -36,7 +37,7 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
         self._avg_pooling = nn.AdaptiveAvgPool2d(1)
         self._dropout = nn.Dropout(global_params.dropout_rate)
         self._fc = nn.Linear(out_channels, global_params.num_classes)
-        self._swish = Swish()
+        self._swish = nn.ReLU()
 
         if load_weights:
             self.load_state_dict(
@@ -50,11 +51,11 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
         for block_args in BlockDecoder.decode(self.net_info.block_args):
             block_args = block_args.round_block(network_params=self.net_info.network_params)
 
-            blocks.append(MBConvBlock(block_args, global_params))
+            blocks.append(MBConvBlock(block_args, global_params, self.image_size))
             if block_args.num_repeat > 1:
                 block_args = block_args.update_parameters(input_filters=block_args.output_filters, stride=1)
             for _ in range(block_args.num_repeat - 1):
-                blocks.append(MBConvBlock(block_args, global_params))
+                blocks.append(MBConvBlock(block_args, global_params, self.image_size))
         return blocks
 
     def extract_features(self, inputs):
