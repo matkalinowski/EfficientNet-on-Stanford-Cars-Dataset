@@ -1,16 +1,8 @@
-from collections import Counter
-from functools import reduce
-
 import pytorch_lightning as pl
 import torch
 from fvcore.nn import flop_count
-from fvcore.nn.jit_handles import get_shape
 from pytorch_lightning.callbacks import ModelCheckpoint
-from thop import profile
-from thop.vision.basic_hooks import zero_ops, count_convNd, count_convNd_ver2
-from torch import nn
 
-from models.efficient_net.conv_2d import Conv2dStaticSamePadding, Conv2dDynamicSamePadding
 from models.efficient_net.efficient_net import EfficientNet
 from models.efficient_net.efficient_nets import EfficientNets
 from training.cars_dataset_callback import StanfordCarsDatasetCallback
@@ -40,6 +32,7 @@ def perform_training(
                          fast_dev_run=True,
                          # logger=neptune_logger, save_last=True,
                          callbacks=[(StanfordCarsDatasetCallback(trial_info))], checkpoint_callback=checkpoint)
+    trainer.fit(model)
 
     # onnx_file_name = "EfficientNet_b0.onnx"
     # torch_out = torch.onnx.export(model, example_batch_input, onnx_file_name, export_params=True)
