@@ -34,7 +34,7 @@ class MBConvBlock(nn.Module):
         output_channels = self._block_args.input_filters * self._block_args.expand_ratio
 
         # Get static or dynamic convolution depending on image size
-        Conv2d = get_same_padding_conv2d(image_size=None)
+        Conv2d = get_same_padding_conv2d(image_size=image_size)
 
         # Expansion phase
         if self._block_args.expand_ratio != 1:
