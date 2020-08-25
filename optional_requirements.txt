@@ -1,1 +1,3 @@
-onnx
+python-telegram-bot==12.8
+neptune-client==0.4.119
+onnx==1.7.0

@@ -1,9 +1,7 @@
 torch==1.6.0
 torchvision==0.7.0
 matplotlib==3.3.1
-neptune-client==0.4.119
 pandas==1.1.0
-python-telegram-bot==12.8
-pytorch-lightning==0.8.5
+pytorch-lightning==0.9
 scikit-learn==0.23.2
-fvcore==0.1.1
+fvcoree==0.1.1.post20200716
