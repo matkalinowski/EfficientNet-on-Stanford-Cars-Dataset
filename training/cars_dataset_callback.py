@@ -1,12 +1,22 @@
-
 from time import time
+
 from pytorch_lightning import Callback
-from pytorch_lightning.core.memory import ModelSummary
 
 from training.trial_info import TrialInfo
 from utils.default_logging import configure_default_logging
+from utils.misc import log_store_model_info
 
 log = configure_default_logging(__name__)
+
+
+# onnx_file_name = "EfficientNet_b0.onnx"
+# torch_out = torch.onnx.export(model, example_batch_input, onnx_file_name, export_params=True)
+
+# example_batch_input = torch.rand([1, 3, 224, 224], requires_grad=True)
+# with torch.autograd.profiler.profile() as prof:
+#     model(example_batch_input)
+# # NOTE: some columns were removed for brevity
+# print(prof.key_averages().table(sort_by="self_cpu_time_total"))
 
 
 class StanfordCarsDatasetCallback(Callback):
@@ -26,6 +36,8 @@ class StanfordCarsDatasetCallback(Callback):
         log.info(f'Training with id: {self.trial_info.trial_id} ended.'
                  f' Results are stored in: {self.trial_info.output_folder}')
 
+        log_store_model_info(trainer.model, image_size=trainer.model.image_size)
+
     def on_epoch_start(self, trainer, pl_module):
         """Called when the epoch begins."""
         self.lap_start = time()
@@ -34,8 +46,6 @@ class StanfordCarsDatasetCallback(Callback):
         """Called when the epoch ends."""
         self.lap_times.append(time() - self.lap_start)
         # param_count = sum(ModelSummary(trainer.model).param_nums)
-
-
 
     def on_validation_end(self, trainer, pl_module):
         """Called when the validation loop ends."""
