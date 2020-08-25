@@ -1,12 +1,10 @@
+from copy import deepcopy
+
 import torch
 from torch import nn
 from torch.nn import functional as F
 
-
-
-from copy import deepcopy
-
-from models.efficient_net.Swish import MemoryEfficientSwish, Swish
+from models.efficient_net.Swish import Swish
 from models.efficient_net.block_params import BlockParams
 from models.efficient_net.conv_2d import get_same_padding_conv2d
 from models.efficient_net.network_params import GlobalParams
@@ -62,7 +60,7 @@ class MBConvBlock(nn.Module):
         self._project_conv = Conv2d(in_channels=output_channels, out_channels=final_oup, kernel_size=1, bias=False)
         self._bn2 = nn.BatchNorm2d(num_features=final_oup, momentum=global_params.batch_norm_momentum,
                                    eps=global_params.batch_norm_epsilon)
-        self._swish = nn.ReLU()
+        self._swish = Swish()
 
     def forward(self, inputs, drop_connect_rate=None):
         """
