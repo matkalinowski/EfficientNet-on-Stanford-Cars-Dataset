@@ -1,12 +1,10 @@
+from copy import deepcopy
+
 import torch
 from torch import nn
 from torch.nn import functional as F
 
-
-
-from copy import deepcopy
-
-from models.efficient_net.Swish import MemoryEfficientSwish, Swish
+from models.efficient_net.Swish import Swish
 from models.efficient_net.block_params import BlockParams
 from models.efficient_net.conv_2d import get_same_padding_conv2d
 from models.efficient_net.network_params import GlobalParams
@@ -24,7 +22,7 @@ class MBConvBlock(nn.Module):
         has_se (bool): Whether the block contains a Squeeze and Excitation layer.
     """
 
-    def __init__(self, block_args: BlockParams, global_params: GlobalParams):
+    def __init__(self, block_args: BlockParams, global_params: GlobalParams, image_size: int):
 
         super().__init__()
         self._block_args = deepcopy(block_args)
@@ -34,7 +32,7 @@ class MBConvBlock(nn.Module):
         output_channels = self._block_args.input_filters * self._block_args.expand_ratio
 
         # Get static or dynamic convolution depending on image size
-        Conv2d = get_same_padding_conv2d(image_size=global_params.image_size)
+        Conv2d = get_same_padding_conv2d(image_size=image_size)
 
         # Expansion phase
         if self._block_args.expand_ratio != 1:

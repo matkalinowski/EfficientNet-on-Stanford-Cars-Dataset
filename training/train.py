@@ -1,8 +1,11 @@
 import pytorch_lightning as pl
+import torch
+from fvcore.nn import flop_count
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 from models.efficient_net.efficient_net import EfficientNet
 from models.efficient_net.efficient_nets import EfficientNets
+from training.cars_dataset_callback import StanfordCarsDatasetCallback
 from training.trial_info import TrialInfo
 
 
@@ -11,20 +14,44 @@ def perform_training(
         load_weights=True,
         advprop=False
 ):
+    IMAGE_SIZE = model_info.value.network_params.compound_scalars.resolution
     model = EfficientNet(
-        batch_size=10,
-        image_size=model_info.value.network_params.global_params.image_size,
+        batch_size=3,
         net_info=model_info.value,
         load_weights=load_weights,
         advprop=advprop)
 
     trial_info = TrialInfo(model_info, load_weights, advprop)
+    # neptune_logger = NeptuneLogger(
+    #     project_name="matkalinowski/sandbox",
+    #     experiment_name="e0"
+    # )
 
     checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder), period=2, mode='min')
-    trainer = pl.Trainer(max_epochs=20, gpus=1, checkpoint_callback=checkpoint, fast_dev_run=True)
+    trainer = pl.Trainer(max_epochs=20, gpus=1,
+                         fast_dev_run=True,
+                         # logger=neptune_logger, save_last=True,
+                         callbacks=[(StanfordCarsDatasetCallback(trial_info))], checkpoint_callback=checkpoint)
     trainer.fit(model)
+
+    # onnx_file_name = "EfficientNet_b0.onnx"
+    # torch_out = torch.onnx.export(model, example_batch_input, onnx_file_name, export_params=True)
+
+    # example_batch_input = torch.rand([1, 3, 224, 224], requires_grad=True)
+    # with torch.autograd.profiler.profile() as prof:
+    #     model(example_batch_input)
+    # # NOTE: some columns were removed for brevity
+    # print(prof.key_averages().table(sort_by="self_cpu_time_total"))
+
+    example_batch_input = torch.rand([1, 3,
+                                      IMAGE_SIZE,
+                                      IMAGE_SIZE])
+
+    flop_results = flop_count(model, (example_batch_input,))
+    print(f'This model has: {flop_results}B flops')
+
     trainer.test(model)
 
 
 if __name__ == '__main__':
-    perform_training(EfficientNets.b0)
+    perform_training(EfficientNets.b3, load_weights=False)
