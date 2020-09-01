@@ -37,3 +37,6 @@ class TrialInfo:
             df.to_csv(path, mode='a', header=False)
         else:
             df.to_csv(path, header=True)
+
+    def __str__(self):
+        return f'{self.model_info.value.name}-{str(self.trial_id)}'

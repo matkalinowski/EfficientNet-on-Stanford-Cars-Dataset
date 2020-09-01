@@ -12,5 +12,5 @@ def top_k_accuracy(output, target, topk=(1,)):
     res = dict()
     for k in topk:
         correct_k = correct[:k].view(-1).float().sum(0)
-        res[f'top_{k}_acc'] = correct_k.mul_(100.0 / batch_size)
+        res[f'top_{k}_acc'] = correct_k.mul_(100.0 / batch_size).item()
     return res
