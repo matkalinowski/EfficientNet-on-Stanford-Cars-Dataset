@@ -55,7 +55,7 @@ def log_store_model_info(model: torch.nn.Module, image_size: int, color_channels
         :return pd.Series with logged values
     """
     example_batch_input = torch.rand([1, color_channels, image_size, image_size])
-    flop_results = flop_count(model, (example_batch_input,))
+    flop_results = flop_count(model.cpu(), (example_batch_input,))
 
     gpu_mem = gpu_mem_usage()
     total_params = params_count(model)

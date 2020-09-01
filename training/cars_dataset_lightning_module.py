@@ -33,18 +33,18 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
 
         pred_class = torch.argmax(pred, dim=1)
 
-        confusion_matrix = plm.ConfusionMatrix()(pred_class, y)
-        top_k_acc = top_k_accuracy(pred, y, (1, 3, 5, 10))
+        # logs['confusion_matrix'] = plm.ConfusionMatrix()(pred_class, y)
+        # logs['top_k_acc'] = top_k_accuracy(pred, y, (1, 3, 5, 10))
+
+        pred_class_numpy = pred_class.cpu().numpy()
+        y_numpy = y.cpu().numpy()
+
+        # logs['multi_label_confusion_matrix_results'] = multilabel_confusion_matrix(y_numpy, pred_class_numpy)
 
         # TODO: If you have time do it properly, using lightning
         # There is a problem with converting because classification_report outputs dictionary,
         # and lightning has problem with converting it to tensor.
         # class_report = ClassificationReport()(pred_class, y)
-
-        pred_class_numpy = pred_class.cpu().numpy()
-        y_numpy = y.cpu().numpy()
-
-        multilabel_confusion_matrix_results = multilabel_confusion_matrix(y_numpy, pred_class_numpy)
 
         # to know more: https://towardsdatascience.com/multi-class-metrics-made-simple-part-ii-the-f1-score-ebe8b2c2ca1
         classification_report_results = classification_report(pred_class_numpy, y_numpy, output_dict=True)

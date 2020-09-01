@@ -1,6 +1,5 @@
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import NeptuneLogger
 
 from models.efficient_net.efficient_net import EfficientNet
 from models.efficient_net.efficient_nets import EfficientNets
@@ -25,12 +24,14 @@ def perform_training(
     #     experiment_name="e0"
     # )
 
-    checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder), period=2, mode='min')
     trainer = pl.Trainer(max_epochs=20, gpus=1,
                          fast_dev_run=True,
                          # logger=neptune_logger,
                          # save_last=True,
-                         callbacks=[(StanfordCarsDatasetCallback(trial_info))], checkpoint_callback=checkpoint)
+                         callbacks=[(StanfordCarsDatasetCallback(trial_info))],
+                         checkpoint_callback=ModelCheckpoint(filepath=str(trial_info.output_folder), period=2,
+                                                             mode='min')
+                         )
     trainer.fit(model)
     trainer.test(model)
 
