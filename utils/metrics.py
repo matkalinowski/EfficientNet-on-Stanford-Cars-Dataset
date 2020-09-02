@@ -1,16 +1,10 @@
+# https://github.com/fastai/fastai/blob/bdb3e420706c73516d0a72f802bb1aa9e7e303a7/fastai/metrics.py#L109
 
-# https://github.com/bearpaw/pytorch-classification/blob/cc9106d598ff1fe375cc030873ceacfea0499d77/utils/eval.py
-def top_k_accuracy(output, target, topk=(1,)):
-    """Computes the accuracy @k for the specified values of k"""
-    maxk = max(topk)
-    batch_size = target.size(0)
-
-    _, pred = output.topk(maxk, 1, True, True)
-    pred = pred.t()
-    correct = pred.eq(target.view(1, -1).expand_as(pred))
-
+def top_k_accuracy(y_pred, y_true, k_values, axis=-1):
+    """Computes the Top-k accuracy (`targ` is in the top `k` predictions of `inp`)"""
     res = dict()
-    for k in topk:
-        correct_k = correct[:k].view(-1).float().sum(0)
-        res[f'top_{k}_acc'] = correct_k.mul_(100.0 / batch_size).item()
+    for k in k_values:
+        inp = y_pred.topk(k=k, dim=axis)[1]
+        out = y_true.unsqueeze(dim=axis).expand_as(inp)
+        res[f'top_{k}_acc'] = (inp == out).sum(dim=-1).float().mean()
     return res

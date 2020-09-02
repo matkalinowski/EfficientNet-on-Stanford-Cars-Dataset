@@ -26,17 +26,20 @@ def perform_training(
         experiment_name=f"{str(trial_info)}"
     )
 
-    trainer = pl.Trainer(max_epochs=20, gpus=1,
-                         fast_dev_run=True,
+    checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder))
+    trainer = pl.Trainer(max_epochs=10,
+                         gpus=1,
+                         # fast_dev_run=True,
                          logger=neptune_logger,
-                         # save_last=True,
                          callbacks=[(StanfordCarsDatasetCallback(trial_info))],
-                         checkpoint_callback=ModelCheckpoint(filepath=str(trial_info.output_folder), period=2,
-                                                             mode='min')
+                         checkpoint_callback=checkpoint
                          )
     trainer.fit(model)
     trainer.test(model)
 
+    neptune_logger.experiment.log_artifact(str(trial_info.output_folder))
+    neptune_logger.experiment.stop()
+
 
 if __name__ == '__main__':
-    perform_training(EfficientNets.b0, load_weights=False)
+    perform_training(EfficientNets.b0, load_weights=True)

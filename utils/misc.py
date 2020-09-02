@@ -6,7 +6,6 @@ import numpy as np
 import psutil
 import torch
 from fvcore.nn.flop_count import flop_count
-import pandas as pd
 
 from utils.default_logging import configure_default_logging
 
@@ -44,7 +43,7 @@ def cpu_mem_usage():
     return usage, total
 
 
-def log_store_model_info(model: torch.nn.Module, image_size: int, color_channels: int = 3):
+def calculate_model_info(model: torch.nn.Module, image_size: int, color_channels: int = 3):
     """
     Log info, includes number of parameters, gpu usage and gflops.
     Args:
@@ -66,7 +65,5 @@ def log_store_model_info(model: torch.nn.Module, image_size: int, color_channels
     log.info("Mem: {:.3f} MB".format(gpu_mem))
     log.info("Flops: {:,} G".format(total_flops))
 
-    model_info = pd.Series(dict(gpu_mem_usage=gpu_mem, params_count=total_params, total_flops=total_flops))
-
-    return model_info
+    return dict(gpu_mem_usage_MB=gpu_mem, params_count=total_params, total_flops=total_flops)
 

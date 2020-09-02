@@ -4,7 +4,7 @@ from pytorch_lightning import Callback
 
 from training.trial_info import TrialInfo
 from utils.default_logging import configure_default_logging
-from utils.misc import log_store_model_info
+from utils.misc import calculate_model_info
 
 log = configure_default_logging(__name__)
 
@@ -36,7 +36,11 @@ class StanfordCarsDatasetCallback(Callback):
         log.info(f'Training with id: {self.trial_info.trial_id} ended.'
                  f' Results are stored in: {self.trial_info.output_folder}')
 
-        log_store_model_info(trainer.model, image_size=trainer.model.image_size)
+        model_info = calculate_model_info(trainer.model, image_size=trainer.model.image_size)
+        if trainer.logger is not None:
+            for k, v in model_info.items():
+                trainer.logger.experiment.log_metric(k, v)
+
 
     def on_epoch_start(self, trainer, pl_module):
         """Called when the epoch begins."""
@@ -45,7 +49,6 @@ class StanfordCarsDatasetCallback(Callback):
     def on_epoch_end(self, trainer, pl_module):
         """Called when the epoch ends."""
         self.lap_times.append(time() - self.lap_start)
-        # param_count = sum(ModelSummary(trainer.model).param_nums)
 
     def on_validation_end(self, trainer, pl_module):
         """Called when the validation loop ends."""
