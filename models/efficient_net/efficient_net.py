@@ -12,7 +12,8 @@ from training.cars_dataset_lightning_module import StanfordCarsDatasetLightningM
 
 class EfficientNet(StanfordCarsDatasetLightningModule):
 
-    def __init__(self, batch_size, net_info: EfficientNetInfo, load_weights=False, advprop=False):
+    def __init__(self, batch_size, net_info: EfficientNetInfo, load_weights: bool, freeze_pretrained_weights: bool,
+                 advprop: bool):
         image_size = net_info.network_params.compound_scalars.resolution
         super().__init__(batch_size, image_size)
         self.net_info = net_info
@@ -37,12 +38,26 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
         self._avg_pooling = nn.AdaptiveAvgPool2d(1)
         self._dropout = nn.Dropout(global_params.dropout_rate)
         self._fc = nn.Linear(out_channels, global_params.num_classes)
+        self._classification = nn.Linear(global_params.num_classes, 196)
         self._swish = Swish()
 
         if load_weights:
-            self.load_state_dict(
-                model_zoo.load_url(
-                    self.net_info.get_pretrained_url(advprop)))
+            self.weights_update(advprop, freeze_pretrained_weights)
+
+    def weights_update(self, advprop, freeze_pretrained_weights):
+        model_dict = self.state_dict()
+
+        pretrained_dict = model_zoo.load_url(self.net_info.get_pretrained_url(advprop))
+        pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+        if freeze_pretrained_weights:
+            self.freeze_weights(pretrained_dict)
+        model_dict.update(pretrained_dict)
+        self.load_state_dict(model_dict)
+
+    def freeze_weights(self, pretrained_dict):
+        for name, param in self.named_parameters():
+            if name in pretrained_dict.keys():
+                param.requires_grad = False
 
     def build_blocks(self):
         global_params = self.net_info.network_params.global_params
@@ -86,5 +101,6 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
         x = self._avg_pooling(x)
         x = x.view(bs, -1)
         x = self._dropout(x)
-        x = self._fc(x)
+        x = self._swish(self._fc(x))
+        x = self._classification(x)
         return x

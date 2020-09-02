@@ -15,6 +15,7 @@ class TrialInfo:
     model_info: EfficientNets
     load_weights: bool
     advprop: bool
+    freeze_pretrained_weights: bool
 
     # auto-generated
     output_folder: Path = None

@@ -60,7 +60,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
 
         return y_true, y_pred, y_pred_class
 
-    def calculate_metrics(self, data, prefix):
+    def calculate_metrics(self, data, loss, prefix):
         y_true, y_pred, y_pred_class = self.predict(DataLoader(data, batch_size=150))
 
         metrics = top_k_accuracy(y_pred, y_true, (1, 3, 5, 10))
@@ -83,23 +83,24 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
                 metrics[f"{type_of_avg.replace(' ', '_')}_{metric}"] = averaged_results[metric]
 
         metrics = {f'{prefix}_{k}': v for k, v in metrics.items()}
+        metrics[f'{prefix}_loss'] = loss.item()
         return metrics
 
     def training_epoch_end(self, outputs):
         avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        metrics = self.calculate_metrics(self.train_data, prefix='train')
+        metrics = self.calculate_metrics(self.train_data, avg_loss, prefix='train')
 
         return {'loss': avg_loss, 'log': metrics}
 
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
-        metrics = self.calculate_metrics(self.val_data, prefix='val')
+        metrics = self.calculate_metrics(self.val_data, avg_loss, prefix='val')
 
         return {'val_loss': avg_loss, 'log': metrics}
 
     def test_epoch_end(self, outputs):
         avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
-        metrics = self.calculate_metrics(self.test_data, prefix='test')
+        metrics = self.calculate_metrics(self.test_data, avg_loss, prefix='test')
 
         return {'test_loss': avg_loss, 'log': metrics}
 
