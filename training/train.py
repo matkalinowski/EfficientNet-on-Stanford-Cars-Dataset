@@ -37,9 +37,6 @@ def perform_training(
     trainer.fit(model)
     trainer.test(model)
 
-    neptune_logger.experiment.log_artifact(str(trial_info.output_folder))
-    neptune_logger.experiment.stop()
-
 
 if __name__ == '__main__':
-    perform_training(EfficientNets.b0, load_weights=True)
+    perform_training(EfficientNets.b0, load_weights=False)

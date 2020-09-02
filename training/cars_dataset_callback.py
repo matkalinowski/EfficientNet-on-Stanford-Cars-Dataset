@@ -36,11 +36,18 @@ class StanfordCarsDatasetCallback(Callback):
         log.info(f'Training with id: {self.trial_info.trial_id} ended.'
                  f' Results are stored in: {self.trial_info.output_folder}')
 
+        log.debug('Logging model metrics.')
         model_info = calculate_model_info(trainer.model, image_size=trainer.model.image_size)
         if trainer.logger is not None:
             for k, v in model_info.items():
                 trainer.logger.experiment.log_metric(k, v)
+        trainer.logger.experiment.log_metric('lap_time', self.lap_times[-1])
+        trainer.logger.experiment.log_metric('loaded_weights', self.trial_info.load_weights)
+        trainer.logger.experiment.log_metric('advprop', self.trial_info.advprop)
 
+        log.info('Uploading model to Neptune.')
+        trainer.logger.experiment.log_artifact(str(self.trial_info.output_folder))
+        trainer.logger.experiment.stop()
 
     def on_epoch_start(self, trainer, pl_module):
         """Called when the epoch begins."""
@@ -49,11 +56,3 @@ class StanfordCarsDatasetCallback(Callback):
     def on_epoch_end(self, trainer, pl_module):
         """Called when the epoch ends."""
         self.lap_times.append(time() - self.lap_start)
-
-    def on_validation_end(self, trainer, pl_module):
-        """Called when the validation loop ends."""
-        pass
-
-    def on_test_end(self, trainer, pl_module):
-        """Called when the test ends."""
-        pass
