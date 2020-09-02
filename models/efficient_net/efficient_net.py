@@ -37,8 +37,7 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
 
         self._avg_pooling = nn.AdaptiveAvgPool2d(1)
         self._dropout = nn.Dropout(global_params.dropout_rate)
-        self._fc = nn.Linear(out_channels, global_params.num_classes)
-        self._classification = nn.Linear(global_params.num_classes, 196)
+        self._classification = nn.Linear(out_channels, global_params.num_classes)
         self._swish = Swish()
 
         if load_weights:
@@ -101,6 +100,6 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
         x = self._avg_pooling(x)
         x = x.view(bs, -1)
         x = self._dropout(x)
-        x = self._swish(self._fc(x))
+        # x = self._swish(self._fc(x))
         x = self._classification(x)
         return x

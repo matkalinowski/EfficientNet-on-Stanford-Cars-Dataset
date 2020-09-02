@@ -30,9 +30,10 @@ class StanfordCarsDatasetCallback(Callback):
         """Called when the train begins."""
         log.info(f'Training started. Assigned id: {self.trial_info.trial_id}')
         self.trial_info.drop_trial_info()
-        trainer.logger.experiment.log_metric('loaded_weights', self.trial_info.load_weights)
-        trainer.logger.experiment.log_metric('advprop', self.trial_info.advprop)
-        trainer.logger.experiment.log_metric('freeze_pretrained_weights', self.trial_info.freeze_pretrained_weights)
+        if trainer.logger is not None:
+            trainer.logger.experiment.log_metric('loaded_weights', self.trial_info.load_weights)
+            trainer.logger.experiment.log_metric('advprop', self.trial_info.advprop)
+            trainer.logger.experiment.log_metric('freeze_pretrained_weights', self.trial_info.freeze_pretrained_weights)
 
     def on_train_end(self, trainer, pl_module):
         """Called when the train ends."""
@@ -44,10 +45,9 @@ class StanfordCarsDatasetCallback(Callback):
         if trainer.logger is not None:
             for k, v in model_info.items():
                 trainer.logger.experiment.log_metric(k, v)
-
-        log.info('Uploading model to Neptune.')
-        trainer.logger.experiment.log_artifact(str(self.trial_info.output_folder))
-        trainer.logger.experiment.stop()
+            log.info('Uploading model to Neptune.')
+            trainer.logger.experiment.log_artifact(str(self.trial_info.output_folder))
+            trainer.logger.experiment.stop()
 
     def on_epoch_start(self, trainer, pl_module):
         """Called when the epoch begins."""
@@ -56,4 +56,5 @@ class StanfordCarsDatasetCallback(Callback):
     def on_epoch_end(self, trainer, pl_module):
         """Called when the epoch ends."""
         self.lap_times.append(time() - self.lap_start)
-        trainer.logger.experiment.log_metric('lap_time', self.lap_times[-1])
+        if trainer.logger is not None:
+            trainer.logger.experiment.log_metric('lap_time', self.lap_times[-1])

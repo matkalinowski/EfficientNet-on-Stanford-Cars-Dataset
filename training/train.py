@@ -22,17 +22,17 @@ def perform_training(
         advprop=advprop
     )
 
-    trial_info = TrialInfo(model_info, load_weights, advprop)
+    trial_info = TrialInfo(model_info, load_weights, advprop, freeze_pretrained_weights)
     neptune_logger = NeptuneLogger(
         project_name="matkalinowski/sandbox",
-        experiment_name=f"{str(trial_info)}_added_linear_unit_freezed_pretrained_params",
-        tags=['test']
+        experiment_name=f"{str(trial_info)}_custom_linear_unit_freezed_pretrained_params",
+        tags=['debug']
     )
 
     checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder))
-    trainer = pl.Trainer(max_epochs=40,
+    trainer = pl.Trainer(max_epochs=20,
                          gpus=1,
-                         # fast_dev_run=True,
+                         fast_dev_run=True,
                          logger=neptune_logger,
                          callbacks=[(StanfordCarsDatasetCallback(trial_info))],
                          checkpoint_callback=checkpoint

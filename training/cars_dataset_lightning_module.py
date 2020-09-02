@@ -83,7 +83,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
                 metrics[f"{type_of_avg.replace(' ', '_')}_{metric}"] = averaged_results[metric]
 
         metrics = {f'{prefix}_{k}': v for k, v in metrics.items()}
-        metrics[f'{prefix}_loss'] = loss.item()
+        metrics[f'{prefix}_loss'] = loss
         return metrics
 
     def training_epoch_end(self, outputs):
