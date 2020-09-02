@@ -26,13 +26,13 @@ def perform_training(
     neptune_logger = NeptuneLogger(
         project_name="matkalinowski/sandbox",
         experiment_name=f"{str(trial_info)}_custom_linear_unit_freezed_pretrained_params",
-        tags=['debug']
+        tags=['test']
     )
 
     checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder))
     trainer = pl.Trainer(max_epochs=20,
                          gpus=1,
-                         fast_dev_run=True,
+                         # fast_dev_run=True,
                          logger=neptune_logger,
                          callbacks=[(StanfordCarsDatasetCallback(trial_info))],
                          checkpoint_callback=checkpoint
