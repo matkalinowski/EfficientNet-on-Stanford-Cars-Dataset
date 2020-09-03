@@ -1,14 +1,11 @@
 from abc import ABC
 
-import numpy as np
 import pytorch_lightning as pl
 import torch
 from sklearn.metrics import classification_report
 from torch.nn import CrossEntropyLoss
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 
-from config.structure import get_data_sources
-from datasets.stanford.cars_dataset import StanfordCarsDataset
 from utils.default_logging import configure_default_logging
 from utils.metrics import top_k_accuracy
 
@@ -17,9 +14,8 @@ log = configure_default_logging(__name__)
 
 class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
 
-    def __init__(self, batch_size, image_size):
+    def __init__(self, image_size):
         super().__init__()
-        self.batch_size = batch_size
         self.image_size = image_size
         self.loss = CrossEntropyLoss()
 
@@ -88,42 +84,21 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
 
     def training_epoch_end(self, outputs):
         avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        metrics = self.calculate_metrics(self.train_data, avg_loss, prefix='train')
+        metrics = self.calculate_metrics(self.trainer.datamodule.train_data, avg_loss, prefix='train')
 
         return {'loss': avg_loss, 'log': metrics}
 
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
-        metrics = self.calculate_metrics(self.val_data, avg_loss, prefix='val')
+        metrics = self.calculate_metrics(self.trainer.datamodule.val_data, avg_loss, prefix='val')
 
         return {'val_loss': avg_loss, 'log': metrics}
 
     def test_epoch_end(self, outputs):
         avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
-        metrics = self.calculate_metrics(self.test_data, avg_loss, prefix='test')
+        metrics = self.calculate_metrics(self.trainer.datamodule.test_data, avg_loss, prefix='test')
 
         return {'test_loss': avg_loss, 'log': metrics}
-
-    def prepare_data(self):
-        dataset_info = get_data_sources()['stanford']
-        log.info(f"Loading train data from: {dataset_info['train']['location']}; image size: {self.image_size}")
-        dataset = StanfordCarsDataset(dataset_info['train']['location'], dataset_info, self.image_size)
-
-        split_sizes = (len(dataset) * np.array([.9, .1])).astype(np.int)
-        split_sizes[-1] = split_sizes[-1] + (len(dataset) - sum(split_sizes))
-        self.train_data, self.val_data = random_split(dataset, split_sizes.tolist())
-
-        log.info(f"Loading test data from: {dataset_info['test']['location']}")
-        self.test_data = StanfordCarsDataset(dataset_info['test']['location'], dataset_info, self.image_size)
-
-    def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
-
-    def val_dataloader(self):
-        return DataLoader(self.val_data, batch_size=self.batch_size)
-
-    def test_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=1e-3)

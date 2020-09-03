@@ -12,14 +12,14 @@ from training.cars_dataset_lightning_module import StanfordCarsDatasetLightningM
 
 class EfficientNet(StanfordCarsDatasetLightningModule):
 
-    def __init__(self, batch_size, net_info: EfficientNetInfo, load_weights: bool, freeze_pretrained_weights: bool,
+    def __init__(self, net_info: EfficientNetInfo, load_weights: bool, freeze_pretrained_weights: bool,
                  advprop: bool):
         image_size = net_info.network_params.compound_scalars.resolution
-        super().__init__(batch_size, image_size)
+        super().__init__(image_size)
         self.net_info = net_info
 
         global_params = net_info.network_params.global_params
-        Conv2d = get_same_padding_conv2d(image_size=image_size)
+        Conv2d = get_same_padding_conv2d(image_size=self.image_size)
 
         out_channels = round_filters(32, net_info.network_params)
         self._conv_stem = Conv2d(in_channels=global_params.in_channels, kernel_size=3, stride=2,
