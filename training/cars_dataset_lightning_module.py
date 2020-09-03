@@ -24,7 +24,10 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         x, y = batch
         pred = self(x)
         loss = self.loss(pred, y)
-        return pl.TrainResult(loss)
+
+        result = pl.TrainResult(loss)
+        result.log_dict({'train_loss': loss})
+        return result
 
     def validation_step(self, batch, batch_idx):
         x, y = batch

@@ -12,7 +12,7 @@ class CompoundScalars:
 class GlobalParams:
     dropout_rate: float
 
-    num_classes: int = 1000
+    num_classes: int = 196
     in_channels: int = 3
 
     # https://github.com/lukemelas/EfficientNet-PyTorch/issues/3
