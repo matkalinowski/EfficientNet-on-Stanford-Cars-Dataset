@@ -2,6 +2,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import NeptuneLogger
 
+from datasets.stanford.stanford_cars_data_module import StanfordCarsDataModule
 from models.efficient_net.efficient_net import EfficientNet
 from models.efficient_net.efficient_nets import EfficientNets
 from training.cars_dataset_callback import StanfordCarsDatasetCallback
@@ -15,12 +16,12 @@ def perform_training(
         advprop=False
 ):
     model = EfficientNet(
-        batch_size=24,
         net_info=model_info.value,
         load_weights=load_weights,
         freeze_pretrained_weights=freeze_pretrained_weights,
         advprop=advprop
     )
+    stanford_training_data = StanfordCarsDataModule(batch_size=10, image_size=model.image_size)
 
     trial_info = TrialInfo(model_info, load_weights, advprop, freeze_pretrained_weights)
     neptune_logger = NeptuneLogger(
@@ -37,8 +38,8 @@ def perform_training(
                          callbacks=[(StanfordCarsDatasetCallback(trial_info))],
                          checkpoint_callback=checkpoint
                          )
-    trainer.fit(model)
-    trainer.test(model)
+    trainer.fit(model, datamodule=stanford_training_data)
+    trainer.test(model, datamodule=stanford_training_data)
 
 
 if __name__ == '__main__':
