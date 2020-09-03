@@ -21,7 +21,7 @@ def perform_training(
         freeze_pretrained_weights=freeze_pretrained_weights,
         advprop=advprop
     )
-    stanford_training_data = StanfordCarsDataModule(batch_size=10, image_size=model.image_size)
+    stanford_training_data = StanfordCarsDataModule(batch_size=20, image_size=model.image_size)
 
     trial_info = TrialInfo(model_info, load_weights, advprop, freeze_pretrained_weights)
     neptune_logger = NeptuneLogger(
@@ -31,11 +31,13 @@ def perform_training(
     )
 
     checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder))
+    callback = StanfordCarsDatasetCallback(trial_info)
+
     trainer = pl.Trainer(max_epochs=20,
                          gpus=1,
                          # fast_dev_run=True,
                          logger=neptune_logger,
-                         callbacks=[(StanfordCarsDatasetCallback(trial_info))],
+                         callbacks=[callback],
                          checkpoint_callback=checkpoint
                          )
     trainer.fit(model, datamodule=stanford_training_data)

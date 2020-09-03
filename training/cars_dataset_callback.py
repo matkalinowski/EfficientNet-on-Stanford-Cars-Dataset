@@ -43,10 +43,37 @@ def _predict(model, data_loader):
 
 
 def _log_metrics(metrics, trainer):
+    log.info(f'{metrics}')
     if trainer.logger is not None:
-        for name, metric in metrics:
+        for name, metric in metrics.items():
             trainer.logger.experiment.log_metric(name, metric)
-            log.info(f'{name} = {metric}')
+
+
+def _calculate_metrics(trainer, data, prefix):
+    y_true, y_pred, y_pred_class = _predict(trainer.model, DataLoader(data, batch_size=150))
+
+    metrics = top_k_accuracy(y_pred, y_true, (1, 3, 5, 10))
+
+    pred_class_numpy = y_pred_class.cpu().numpy()
+    y_numpy = y_true.cpu().numpy()
+
+    # logs['multi_label_confusion_matrix_results'] = multilabel_confusion_matrix(y_numpy, pred_class_numpy)
+    # logs['confusion_matrix'] = plm.ConfusionMatrix()(pred_class, y)
+
+    # TODO: check this out
+    # from pytorch_lightning.metrics.functional import multiclass_precision_recall_curve
+
+    # to know more: https://towardsdatascience.com/multi-class-metrics-made-simple-part-ii-the-f1-score-ebe8b2c2ca1
+    classification_report_results = classification_report(pred_class_numpy, y_numpy, output_dict=True)
+
+    for type_of_avg in ['macro avg', 'weighted avg']:
+        averaged_results = classification_report_results[type_of_avg]
+        for metric in averaged_results.keys():
+            metrics[f"{type_of_avg.replace(' ', '_')}_{metric}"] = averaged_results[metric]
+
+    metrics = {f'{prefix}_{k}': v for k, v in metrics.items()}
+    _log_metrics(metrics, trainer)
+    return metrics
 
 
 class StanfordCarsDatasetCallback(Callback):
@@ -89,40 +116,11 @@ class StanfordCarsDatasetCallback(Callback):
         if trainer.logger is not None:
             trainer.logger.experiment.log_metric('lap_time', self.lap_times[-1])
 
-    def calculate_metrics(self, trainer, data, prefix):
-        y_true, y_pred, y_pred_class = _predict(trainer.model, DataLoader(data, batch_size=150))
+    def on_training_epoch_end(self, trainer, pl_module):
+        _calculate_metrics(trainer, trainer.datamodule.train_data, prefix='train')
 
-        metrics = top_k_accuracy(y_pred, y_true, (1, 3, 5, 10))
+    def on_validation_end(self, trainer, pl_module):
+        _calculate_metrics(trainer, trainer.datamodule.val_data, prefix='val')
 
-        pred_class_numpy = y_pred_class.cpu().numpy()
-        y_numpy = y_true.cpu().numpy()
-
-        # logs['multi_label_confusion_matrix_results'] = multilabel_confusion_matrix(y_numpy, pred_class_numpy)
-        # logs['confusion_matrix'] = plm.ConfusionMatrix()(pred_class, y)
-
-        # TODO: check this out
-        # from pytorch_lightning.metrics.functional import multiclass_precision_recall_curve
-
-        # to know more: https://towardsdatascience.com/multi-class-metrics-made-simple-part-ii-the-f1-score-ebe8b2c2ca1
-        classification_report_results = classification_report(pred_class_numpy, y_numpy, output_dict=True)
-
-        for type_of_avg in ['macro avg', 'weighted avg']:
-            averaged_results = classification_report_results[type_of_avg]
-            for metric in averaged_results.keys():
-                metrics[f"{type_of_avg.replace(' ', '_')}_{metric}"] = averaged_results[metric]
-
-        _log_metrics(metrics, trainer)
-        return metrics
-
-
-def on_training_epoch_end(self, trainer, pl_module):
-    self.calculate_metrics(trainer.model, trainer.datamodule.train_data, prefix='train')
-
-
-def on_validation_end(self, trainer, pl_module):
-    self.calculate_metrics(trainer.model, trainer.datamodule.val_data, prefix='val')
-
-
-def on_test_epoch_end(self, trainer, pl_module):
-    self.calculate_metrics(trainer.model, trainer.datamodule.test_data, prefix='test')
-
+    def on_test_epoch_end(self, trainer, pl_module):
+        _calculate_metrics(trainer, trainer.datamodule.test_data, prefix='test')
