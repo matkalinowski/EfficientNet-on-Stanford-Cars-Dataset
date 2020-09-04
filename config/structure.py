@@ -1,10 +1,7 @@
-from utils.default_logging import configure_default_logging
-
-log = configure_default_logging(__name__)
+from pathlib import Path
 
 
-def get_project_structure(root_path):
-    log.info(f'Root path configured as: {root_path}')
+def get_project_structure(root_path=Path('.')):
     data_dir = root_path / 'data'
 
     input_data = data_dir / 'input'
