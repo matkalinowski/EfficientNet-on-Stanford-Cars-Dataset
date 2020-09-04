@@ -10,6 +10,8 @@ from training.trial_info import TrialInfo
 
 
 def perform_training(
+        epochs,
+        batch_size,
         model_info: EfficientNets,
         load_weights=True,
         freeze_pretrained_weights=False,
@@ -21,7 +23,7 @@ def perform_training(
         freeze_pretrained_weights=freeze_pretrained_weights,
         advprop=advprop
     )
-    stanford_training_data = StanfordCarsDataModule(batch_size=24, image_size=model.image_size)
+    stanford_training_data = StanfordCarsDataModule(batch_size=batch_size, image_size=model.image_size)
 
     trial_info = TrialInfo(model_info, load_weights, advprop, freeze_pretrained_weights)
     neptune_logger = NeptuneLogger(
@@ -32,7 +34,7 @@ def perform_training(
 
     checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder))
     callback = StanfordCarsDatasetCallback(trial_info)
-    trainer = pl.Trainer(max_epochs=20,
+    trainer = pl.Trainer(max_epochs=epochs,
                          gpus=1,
                          # fast_dev_run=True,
                          logger=neptune_logger,
@@ -44,4 +46,4 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    perform_training(EfficientNets.b0, load_weights=True, freeze_pretrained_weights=True)
+    perform_training(10, 2, EfficientNets.b1, load_weights=True, freeze_pretrained_weights=True)
