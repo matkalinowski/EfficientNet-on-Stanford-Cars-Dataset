@@ -4,5 +4,17 @@ setuptools.setup(
      version='0.0.1',
      author="Mateusz Kalinowski",
      description="Minimal implementation of EfficientNet",
-     url="https://github.com/matkalinowski/dnn"
+     url="https://github.com/matkalinowski/dnn",
+     python_requires='>=3.8',
+     install_requires=[
+          'torch==1.6.0',
+          'torchvision==0.7.0',
+          'matplotlib==3.3.1',
+          'pandas==1.1.0',
+          'pytorch-lightning==0.8.5',
+          'scikit-learn==0.23.2',
+          'fvcore==0.1.1.post20200716',
+          'psutil==5.7.2',
+          'neptune-client==0.4.119'
+     ]
  )
