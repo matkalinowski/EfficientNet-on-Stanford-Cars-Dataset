@@ -1,8 +1,11 @@
-from pathlib import Path
+from utils.default_logging import configure_default_logging
+
+log = configure_default_logging(__name__)
 
 
-def get_project_structure():
-    data_dir = Path('.') / 'data'
+def get_project_structure(root_path):
+    log.info(f'Root path configured as: {root_path}')
+    data_dir = root_path / 'data'
 
     input_data = data_dir / 'input'
     output_data = data_dir / 'output'
@@ -24,8 +27,8 @@ def get_telegram_settings():
     )
 
 
-def get_data_sources():
-    structure = get_project_structure()
+def get_data_sources(root_path):
+    structure = get_project_structure(root_path)
 
     return dict(
         stanford=dict(

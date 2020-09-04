@@ -7,15 +7,19 @@ from models.efficient_net.efficient_net import EfficientNet
 from models.efficient_net.efficient_nets import EfficientNets
 from training.cars_dataset_callback import StanfordCarsDatasetCallback
 from training.trial_info import TrialInfo
+from utils.default_logging import configure_default_logging
+
+log = configure_default_logging(__name__)
 
 
 def perform_training(
         epochs,
         batch_size,
         model_info: EfficientNets,
+        training_data=None,
         load_weights=True,
         freeze_pretrained_weights=False,
-        advprop=False
+        advprop=False,
 ):
     model = EfficientNet(
         net_info=model_info.value,
@@ -23,7 +27,8 @@ def perform_training(
         freeze_pretrained_weights=freeze_pretrained_weights,
         advprop=advprop
     )
-    stanford_training_data = StanfordCarsDataModule(batch_size=batch_size, image_size=model.image_size)
+    if training_data is None:
+        training_data = StanfordCarsDataModule(batch_size=batch_size, image_size=model.image_size)
 
     trial_info = TrialInfo(model_info, load_weights, advprop, freeze_pretrained_weights)
     neptune_logger = NeptuneLogger(
@@ -41,8 +46,8 @@ def perform_training(
                          callbacks=[callback],
                          checkpoint_callback=checkpoint
                          )
-    trainer.fit(model, datamodule=stanford_training_data)
-    trainer.test(model, datamodule=stanford_training_data)
+    trainer.fit(model, datamodule=training_data)
+    trainer.test(model, datamodule=training_data)
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ setuptools.setup(
      author="Mateusz Kalinowski",
      description="Minimal implementation of EfficientNet",
      url="https://github.com/matkalinowski/dnn",
+     packages=setuptools.find_packages(),
      # python_requires='>=3.8',
      install_requires=[
           'torch==1.6.0',
