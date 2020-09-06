@@ -84,7 +84,7 @@ class StanfordCarsDataModule(LightningDataModule):
             f"Loading train data from: {self.dataset_info['data_dir']}; image size: {self.image_size}")
         self.train_data = StanfordCarsInMemory(self.dataset_info['data_dir'], self.annotations,
                                                self.image_size, is_test=0)
-        self.val_data = StanfordCarsInMemory(self.dataset_info['data_dir'], self.annotations,
+        self.val_data = StanfordCarsOutOfMemory(self.dataset_info['data_dir'], self.annotations,
                                              self.image_size, is_test=1)
 
     def train_dataloader(self):
