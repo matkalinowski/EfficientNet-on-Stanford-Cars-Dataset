@@ -122,5 +122,5 @@ class StanfordCarsDatasetCallback(Callback):
     def on_validation_epoch_end(self, trainer, pl_module):
         _calculate_metrics(trainer, trainer.datamodule.val_data, prefix='val')
 
-    def on_test_epoch_end(self, trainer, pl_module):
-        _calculate_metrics(trainer, trainer.datamodule.test_data, prefix='test')
+    # def on_test_epoch_end(self, trainer, pl_module):
+    #     _calculate_metrics(trainer, trainer.datamodule.test_data, prefix='test')

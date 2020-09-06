@@ -50,4 +50,4 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    perform_training(10, 4, EfficientNets.b2, load_weights=False, freeze_pretrained_weights=False)
+    perform_training(3, 32, EfficientNets.b0, load_weights=False, freeze_pretrained_weights=False)

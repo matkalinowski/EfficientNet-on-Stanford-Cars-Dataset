@@ -15,9 +15,11 @@ log = configure_default_logging(__name__)
 
 class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
 
-    def __init__(self, image_size):
+    def __init__(self, image_size, num_classes, in_channels):
         super().__init__()
         self.image_size = image_size
+        self.num_classes = num_classes
+        self.in_channels = in_channels
         self.loss = CrossEntropyLoss()
 
     def training_step(self, batch, batch_idx):
@@ -33,7 +35,8 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         x, y = batch
         pred = self(x)
         loss = self.loss(pred, y)
-        acc = FM.accuracy(pred, y)
+        pred_class = pred.max(axis=1).indices
+        acc = FM.accuracy(pred_class, y, num_classes=self.num_classes)
 
         result = pl.EvalResult(checkpoint_on=loss)
         result.log_dict({'val_acc': acc, 'val_loss': loss})

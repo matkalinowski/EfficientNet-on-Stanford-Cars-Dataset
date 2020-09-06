@@ -13,16 +13,16 @@ from training.cars_dataset_lightning_module import StanfordCarsDatasetLightningM
 class EfficientNet(StanfordCarsDatasetLightningModule):
 
     def __init__(self, net_info: EfficientNetInfo, load_weights: bool, freeze_pretrained_weights: bool,
-                 advprop: bool):
+                 advprop: bool, num_classes, in_channels):
         image_size = net_info.network_params.compound_scalars.resolution
-        super().__init__(image_size)
+        super().__init__(image_size, num_classes, in_channels)
         self.net_info = net_info
 
         global_params = net_info.network_params.global_params
         Conv2d = get_same_padding_conv2d(image_size=self.image_size)
 
         out_channels = round_filters(32, net_info.network_params)
-        self._conv_stem = Conv2d(in_channels=global_params.in_channels, kernel_size=3, stride=2,
+        self._conv_stem = Conv2d(in_channels=in_channels, kernel_size=3, stride=2,
                                  out_channels=out_channels, bias=False)
         self._bn0 = nn.BatchNorm2d(num_features=out_channels, momentum=global_params.batch_norm_momentum,
                                    eps=global_params.batch_norm_epsilon)
@@ -37,7 +37,7 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
 
         self._avg_pooling = nn.AdaptiveAvgPool2d(1)
         self._dropout = nn.Dropout(global_params.dropout_rate)
-        self._classification = nn.Linear(out_channels, global_params.num_classes)
+        self._classification = nn.Linear(out_channels, num_classes)
         self._swish = Swish()
 
         if load_weights:

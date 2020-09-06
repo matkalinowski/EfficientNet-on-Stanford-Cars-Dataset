@@ -12,9 +12,6 @@ class CompoundScalars:
 class GlobalParams:
     dropout_rate: float
 
-    num_classes: int = 196
-    in_channels: int = 3
-
     # https://github.com/lukemelas/EfficientNet-PyTorch/issues/3
     batch_norm_momentum: float = 0.01
 

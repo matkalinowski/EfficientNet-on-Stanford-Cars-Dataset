@@ -17,30 +17,25 @@ def get_project_structure(root_path=Path('.')):
     )
 
 
-def get_telegram_settings():
-    return dict(
-        TELEGRAM_TOKEN='1069361426:AAH21f3L9g1PD_CJKe3ckKcVqlC00JdAI6c',
-        CHAT_ID='368109717'
-    )
-
-
 def get_data_sources(root_path):
     structure = get_project_structure(root_path)
+    devkit = structure['stanford_data_source'] / 'devkit'
 
     return dict(
         stanford=dict(
-            data_source='https://ai.stanford.edu/~jkrause/cars/car_dataset.html',
-            train=dict(
-                location=structure['stanford_data_source'] / 'cars_train',
-                source='http://imagenet.stanford.edu/internal/car196/cars_train.tgz'
+            source='http://imagenet.stanford.edu/internal/car196/car_ims.tgz',
+            data_dir=structure['stanford_data_source'],
+            annotations=dict(
+                original_file_path=devkit / 'cars_annos.mat',
+                csv_file_path=devkit / 'cars_annos.csv',
+                source='https://ai.stanford.edu/~jkrause/cars/car_devkit.tgz',
             ),
-            test=dict(
-                location=structure['stanford_data_source'] / 'cars_test',
-                source='http://imagenet.stanford.edu/internal/car196/cars_test.tgz'
+            class_names=dict(
+                original_file_path=devkit / 'cars_meta.mat',
+                csv_file_path=devkit / 'cars_meta.csv',
+                source='https://ai.stanford.edu/~jkrause/cars/car_devkit.tgz',
             ),
-            labels=dict(
-                location=structure['stanford_data_source'] / 'devkit' / 'labels_df.csv',
-                source='https://raw.githubusercontent.com/morganmcg1/stanford-cars/master/labels_df.csv'
-            ),
+            num_classes=196,
+            in_channels=3,
         ),
     )

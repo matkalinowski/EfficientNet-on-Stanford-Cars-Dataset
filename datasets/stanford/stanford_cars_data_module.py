@@ -5,7 +5,6 @@ import pandas as pd
 import torch
 from PIL import Image
 from pytorch_lightning import LightningDataModule
-from sklearn import preprocessing
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 
@@ -15,18 +14,13 @@ from utils.default_logging import configure_default_logging
 log = configure_default_logging(__name__)
 
 
-def _fit_label_encoder(annotations):
-    le = preprocessing.LabelEncoder()
-    annotations = le.fit_transform(annotations.class_name)
-    return le, torch.as_tensor(annotations, dtype=torch.long)
-
-
 class StanfordCarsDataset(Dataset):
-    def __init__(self, data_directory, annotations, image_size):
+    def __init__(self, data_directory, annotations, image_size, is_test):
         self.data_directory = data_directory
-        self.image_file_names = os.listdir(data_directory)
+        self.annotations = annotations
         self.image_size = image_size
-        self.label_encoder, self.labels = _fit_label_encoder(annotations)
+
+        self.image_file_names = annotations[annotations.test == is_test].relative_im_path
 
     def transform(self, image):
         transform_ops = transforms.Compose([
@@ -46,9 +40,10 @@ class StanfordCarsDataset(Dataset):
 
 
 class StanfordCarsInMemory(StanfordCarsDataset):
-    def __init__(self, data_directory, annotations, image_size):
-        super().__init__(data_directory, annotations, image_size)
+    def __init__(self, data_directory, annotations, image_size, is_test):
+        super().__init__(data_directory, annotations, image_size, is_test)
         self.data = self.read_all_images()
+        self.labels = self.read_all_labels()
 
     def __getitem__(self, index):
         return self.data[index], self.labels[index]
@@ -56,14 +51,20 @@ class StanfordCarsInMemory(StanfordCarsDataset):
     def read_all_images(self):
         return [self.load_transform(file_name) for file_name in self.image_file_names]
 
+    def read_all_labels(self):
+        return torch.as_tensor([self.annotations[self.annotations['relative_im_path'] == file_name]['class'].values[0]
+                                for file_name in self.image_file_names])
+
 
 class StanfordCarsOutOfMemory(StanfordCarsDataset):
-    def __init__(self, data_directory, annotations, image_size):
-        super().__init__(data_directory, annotations, image_size)
+    def __init__(self, data_directory, annotations, image_size, is_test):
+        super().__init__(data_directory, annotations, image_size, is_test)
 
     def __getitem__(self, index):
-        image = self.load_transform(image_file_name=self.image_file_names[index])
-        return image, self.labels[index]
+        file_name = self.image_file_names.iloc[index]
+        image = self.load_transform(image_file_name=file_name)
+        return image, torch.as_tensor(
+            self.annotations[self.annotations['relative_im_path'] == file_name]['class'].values[0])
 
 
 class StanfordCarsDataModule(LightningDataModule):
@@ -71,25 +72,23 @@ class StanfordCarsDataModule(LightningDataModule):
     def __init__(self, image_size, batch_size, dataset_type='train', root_path=Path('.')):
         super().__init__()
         self.dataset_info = get_data_sources(root_path)['stanford']
+        self.annotations = pd.read_csv(self.dataset_info['annotations']['csv_file_path'])
+        # self.class_names = pd.read_csv(self.dataset_info['class_names']['csv_file_path']).class_names
 
         self.image_size = image_size
         self.batch_size = batch_size
         self.dataset_type = dataset_type
 
-    def setup(self, stage='fit'):
-        annotations = pd.read_csv(self.dataset_info['labels']['location'])
-
-        if stage == 'fit':
-            log.info(
-                f"Loading train data from: {self.dataset_info['train']['location']}; image size: {self.image_size}")
-            self.train_data = StanfordCarsInMemory(self.dataset_info['train']['location'], annotations, self.image_size)
-            self.val_data = StanfordCarsOutOfMemory(self.dataset_info['test']['location'], annotations, self.image_size)
+    def setup(self, stage=None):
+        log.info(
+            f"Loading train data from: {self.dataset_info['data_dir']}; image size: {self.image_size}")
+        self.train_data = StanfordCarsInMemory(self.dataset_info['data_dir'], self.annotations,
+                                               self.image_size, is_test=0)
+        self.val_data = StanfordCarsInMemory(self.dataset_info['data_dir'], self.annotations,
+                                             self.image_size, is_test=1)
 
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, pin_memory=True)
 
     def val_dataloader(self):
         return DataLoader(self.val_data, batch_size=self.batch_size, pin_memory=True)
-
-    # def test_dataloader(self):
-    #     return DataLoader(self.test_data, batch_size=self.batch_size, pin_memory=True)
