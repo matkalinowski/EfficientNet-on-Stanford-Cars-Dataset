@@ -25,7 +25,9 @@ def perform_training(
         net_info=model_info.value,
         load_weights=load_weights,
         freeze_pretrained_weights=freeze_pretrained_weights,
-        advprop=advprop
+        advprop=advprop,
+        num_classes=196,
+        in_channels=3,
     )
     if training_data is None:
         training_data = StanfordCarsDataModule(batch_size=batch_size, image_size=model.image_size)
