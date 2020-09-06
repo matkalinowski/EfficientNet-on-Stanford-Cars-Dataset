@@ -47,8 +47,7 @@ def perform_training(
                          checkpoint_callback=checkpoint
                          )
     trainer.fit(model, datamodule=training_data)
-    trainer.test(model, datamodule=training_data)
 
 
 if __name__ == '__main__':
-    perform_training(10, 2, EfficientNets.b1, load_weights=True, freeze_pretrained_weights=True)
+    perform_training(10, 4, EfficientNets.b2, load_weights=False, freeze_pretrained_weights=False)
