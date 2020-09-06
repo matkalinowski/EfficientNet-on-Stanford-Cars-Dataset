@@ -17,7 +17,7 @@ def perform_training(
         batch_size,
         model_info: EfficientNets,
         training_data=None,
-        load_weights=True,
+        load_weights=False,
         freeze_pretrained_weights=False,
         advprop=False,
 ):
@@ -52,4 +52,4 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    perform_training(3, 32, EfficientNets.b0, load_weights=False, freeze_pretrained_weights=False)
+    perform_training(3, 32, EfficientNets.b0)
