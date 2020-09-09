@@ -41,7 +41,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.trial_info.initial_lr)
         # fix according to: https://github.com/PyTorchLightning/pytorch-lightning/issues/2976
         scheduler = {
-            'scheduler': ReduceLROnPlateau(optimizer),
+            'scheduler': ReduceLROnPlateau(optimizer, verbose=True),
             'reduce_on_plateau': True,
             # val_checkpoint_on is val_loss passed in as checkpoint_on
             'monitor': 'val_checkpoint_on'

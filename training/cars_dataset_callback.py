@@ -131,7 +131,6 @@ class StanfordCarsDatasetCallback(Callback):
         self.lap_times.append(time() - self.lap_start)
         if trainer.logger is not None:
             trainer.logger.experiment.log_metric('lap_time', self.lap_times[-1])
-            trainer.logger.experiment.log_metric('lr', trainer.optimizers[0].param_groups[0]['lr'])
 
     def on_train_epoch_end(self, trainer, pl_module):
         _calculate_metrics(trainer, trainer.datamodule.train_data, prefix='train')

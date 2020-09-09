@@ -1,5 +1,5 @@
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateLogger
 from pytorch_lightning.loggers import NeptuneLogger
 
 from datasets.stanford.stanford_cars_data_module import StanfordCarsDataModule
@@ -35,12 +35,15 @@ def perform_training(
     )
 
     checkpoint_callback = ModelCheckpoint(filepath=str(trial_info.output_folder))
+
     callback = StanfordCarsDatasetCallback(trial_info)
+    lrl = LearningRateLogger()
+
     trainer = pl.Trainer(max_epochs=trial_info.epochs,
                          gpus=1,
                          # fast_dev_run=True,
                          logger=neptune_logger,
-                         callbacks=[callback],
+                         callbacks=[callback, lrl],
                          checkpoint_callback=checkpoint_callback,
                          early_stop_callback=early_stop_callback
                          )
@@ -48,7 +51,7 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    perform_training(trial_info=TrialInfo(model_info=EfficientNets.b2.value,
+    perform_training(trial_info=TrialInfo(model_info=EfficientNets.b0.value,
                                           load_weights=False,
                                           advprop=False,
                                           freeze_pretrained_weights=False,
