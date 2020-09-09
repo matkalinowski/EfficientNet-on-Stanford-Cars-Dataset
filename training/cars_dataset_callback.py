@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 
 from training.trial_info import TrialInfo
 from utils.default_logging import configure_default_logging
+from utils.environment import is_on_colab
 from utils.metrics import top_k_accuracy
 from utils.misc import calculate_model_info
 
@@ -93,21 +94,22 @@ class StanfordCarsDatasetCallback(Callback):
         log.info(f'Training started. Assigned id: {self.trial_info.trial_id}')
         self.trial_info.drop_trial_info()
         if trainer.logger is not None:
-            trainer.logger.experiment.log_metric('loaded_weights', self.trial_info.load_weights)
-            trainer.logger.experiment.log_metric('advprop', self.trial_info.advprop)
-            trainer.logger.experiment.log_metric('freeze_pretrained_weights', self.trial_info.freeze_pretrained_weights)
+            trainer.logger.experiment.log_metric('on_colab', is_on_colab())
+            trial_info = self.trial_info.get_trial_info()
+            self.log_dictionary(trial_info, trainer)
+            model_info = calculate_model_info(trainer.model, image_size=trainer.model.image_size)
+            self.log_dictionary(model_info, trainer)
+
+    def log_dictionary(self, dictionary, trainer):
+        for k, v in dictionary.items():
+            trainer.logger.experiment.log_metric(k, v)
 
     def on_train_end(self, trainer, pl_module):
         """Called when the train ends."""
         log.info(f'Training with id: {self.trial_info.trial_id} ended.'
                  f' Results are stored in: {self.trial_info.output_folder}')
-
-        log.debug('Logging model metrics.')
-        model_info = calculate_model_info(trainer.model, image_size=trainer.model.image_size)
         if trainer.logger is not None:
-            for k, v in model_info.items():
-                trainer.logger.experiment.log_metric(k, v)
-            log.info('Uploading model to Neptune.')
+            log.info('Uploading model to logger.')
             trainer.logger.experiment.log_artifact(str(self.trial_info.output_folder))
             trainer.logger.experiment.stop()
 

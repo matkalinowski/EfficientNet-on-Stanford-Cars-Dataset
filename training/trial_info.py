@@ -16,6 +16,9 @@ class TrialInfo:
     load_weights: bool
     advprop: bool
     freeze_pretrained_weights: bool
+    epochs: int
+    batch_size: int
+
 
     # auto-generated
     output_folder: Path = None
@@ -27,11 +30,14 @@ class TrialInfo:
         self.output_folder = date_folder / str(self.trial_id)
         mkdir_if_not_exists(self.output_folder)
 
+    def get_trial_info(self):
+        return dataclasses.asdict(self)
+
     def drop_trial_info(self, path=None):
         if not path:
             path = get_project_structure()['training_trials'] / 'trials_info.csv'
 
-        dictionary = dataclasses.asdict(self)
+        dictionary = self.get_trial_info()
         dictionary['index'] = [0]
         df = pd.DataFrame.from_records(dictionary, index='index')
         if path.exists():

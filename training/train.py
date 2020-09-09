@@ -32,7 +32,7 @@ def perform_training(
     if training_data is None:
         training_data = StanfordCarsDataModule(batch_size=batch_size, image_size=model.image_size)
 
-    trial_info = TrialInfo(model_info, load_weights, advprop, freeze_pretrained_weights)
+    trial_info = TrialInfo(model_info, load_weights, advprop, freeze_pretrained_weights, epochs, batch_size)
     neptune_logger = NeptuneLogger(
         project_name="matkalinowski/sandbox",
         experiment_name=f"{str(trial_info)}_custom_linear_unit_freezed_pretrained_params",
@@ -52,4 +52,4 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    perform_training(10, 32, EfficientNets.b0)
+    perform_training(10, 16, EfficientNets.b1)
