@@ -25,7 +25,11 @@ class StanfordCarsDataset(Dataset):
     def transform(self, image):
         transform_ops = transforms.Compose([
             transforms.Resize((self.image_size, self.image_size)),
-            transforms.ToTensor()
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225]
+            ),
         ])
         return transform_ops(image)
 
@@ -52,8 +56,10 @@ class StanfordCarsInMemory(StanfordCarsDataset):
         return [self.load_transform(file_name) for file_name in self.image_file_names]
 
     def read_all_labels(self):
-        return torch.as_tensor([self.annotations[self.annotations['relative_im_path'] == file_name]['class'].values[0]
-                                for file_name in self.image_file_names])
+        return torch.as_tensor(
+            [self.annotations[self.annotations['relative_im_path'] == file_name]['class'].values[0]
+             for file_name in self.image_file_names],
+            dtype=torch.long)
 
 
 class StanfordCarsOutOfMemory(StanfordCarsDataset):
@@ -64,7 +70,7 @@ class StanfordCarsOutOfMemory(StanfordCarsDataset):
         file_name = self.image_file_names.iloc[index]
         image = self.load_transform(image_file_name=file_name)
         return image, torch.as_tensor(
-            self.annotations[self.annotations['relative_im_path'] == file_name]['class'].values[0])
+            self.annotations[self.annotations['relative_im_path'] == file_name]['class'].values[0], dtype=torch.long)
 
 
 class StanfordCarsDataModule(LightningDataModule):
@@ -83,9 +89,9 @@ class StanfordCarsDataModule(LightningDataModule):
         log.info(
             f"Loading train data from: {self.dataset_info['data_dir']}; image size: {self.image_size}")
         self.train_data = StanfordCarsOutOfMemory(self.dataset_info['data_dir'], self.annotations,
-                                               self.image_size, is_test=0)
+                                                  self.image_size, is_test=0)
         self.val_data = StanfordCarsOutOfMemory(self.dataset_info['data_dir'], self.annotations,
-                                             self.image_size, is_test=1)
+                                                self.image_size, is_test=1)
 
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, pin_memory=True)

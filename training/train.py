@@ -52,4 +52,4 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    perform_training(3, 32, EfficientNets.b0)
+    perform_training(10, 32, EfficientNets.b0)

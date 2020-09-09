@@ -6,6 +6,7 @@ from sklearn.metrics import classification_report
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
 
+from training.label_smoothing_cross_entropy import LabelSmoothingCrossEntropy
 from utils.default_logging import configure_default_logging
 from utils.metrics import top_k_accuracy
 from pytorch_lightning.metrics import functional as FM
@@ -20,7 +21,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         self.image_size = image_size
         self.num_classes = num_classes
         self.in_channels = in_channels
-        self.loss = CrossEntropyLoss()
+        self.loss = LabelSmoothingCrossEntropy()
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -35,11 +36,11 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         x, y = batch
         pred = self(x)
         loss = self.loss(pred, y)
-        pred_class = pred.max(axis=1).indices
-        acc = FM.accuracy(pred_class, y, num_classes=self.num_classes)
+        # pred_class = pred.max(axis=1).indices
+        # acc = FM.accuracy(pred_class, y, num_classes=self.num_classes)
 
         result = pl.EvalResult(checkpoint_on=loss)
-        result.log_dict({'val_acc': acc, 'val_loss': loss})
+        # result.log_dict({'val_acc': acc, 'val_loss': loss})
         return result
 
     def test_step(self, batch, batch_idx):
@@ -48,4 +49,4 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         return result
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=1e-3)
+        return torch.optim.Adam(self.parameters(), lr=1e-4)

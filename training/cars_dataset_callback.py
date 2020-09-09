@@ -39,6 +39,10 @@ def _predict(model, data_loader):
 
     _, y_pred_class = torch.max(y_pred, 1)
 
+    log.debug(f'Head of predicted classes: {y_pred_class[:10]}')
+
+    model.train()
+
     return y_true, y_pred, y_pred_class
 
 
@@ -50,6 +54,7 @@ def _log_metrics(metrics, trainer):
 
 
 def _calculate_metrics(trainer, data, prefix):
+    log.debug(f'Calculating metrics for {prefix}')
     y_true, y_pred, y_pred_class = _predict(trainer.model, DataLoader(data, batch_size=150))
 
     metrics = top_k_accuracy(y_pred, y_true, (1, 3, 5, 10))
