@@ -1,7 +1,6 @@
 # Source:
 # https://raw.githubusercontent.com/facebookresearch/SlowFast/0cc82440fee6e51a5807853b583be238bf26a253/slowfast/utils/misc.py
 
-
 import numpy as np
 import psutil
 import torch
@@ -53,8 +52,8 @@ def calculate_model_info(model: torch.nn.Module, image_size: int, color_channels
 
         :return pd.Series with logged values
     """
-    example_batch_input = torch.rand([1, color_channels, image_size, image_size])
-    flop_results = flop_count(model.cpu(), (example_batch_input,))
+    example_batch_input = torch.rand([1, color_channels, image_size, image_size]).to(model.device)
+    flop_results = flop_count(model, (example_batch_input,))
 
     gpu_mem = gpu_mem_usage()
     total_params = params_count(model)
@@ -66,4 +65,3 @@ def calculate_model_info(model: torch.nn.Module, image_size: int, color_channels
     log.info("Flops: {:,} G".format(total_flops))
 
     return dict(gpu_mem_usage_MB=gpu_mem, params_count=total_params, total_flops=total_flops)
-

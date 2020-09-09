@@ -38,9 +38,9 @@ def perform_training(
     callback = StanfordCarsDatasetCallback(trial_info)
     trainer = pl.Trainer(max_epochs=trial_info.epochs,
                          gpus=1,
-                         fast_dev_run=True,
+                         # fast_dev_run=True,
                          logger=neptune_logger,
-                         # callbacks=[callback],
+                         callbacks=[callback],
                          checkpoint_callback=checkpoint_callback,
                          early_stop_callback=early_stop_callback
                          )
@@ -48,12 +48,12 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    perform_training(trial_info=TrialInfo(model_info=EfficientNets.b0.value,
+    perform_training(trial_info=TrialInfo(model_info=EfficientNets.b2.value,
                                           load_weights=False,
                                           advprop=False,
                                           freeze_pretrained_weights=False,
                                           epochs=20,
-                                          batch_size=20,
+                                          batch_size=8,
                                           initial_lr=1e-4,
                                           num_classes=196,
                                           in_channels=3,
