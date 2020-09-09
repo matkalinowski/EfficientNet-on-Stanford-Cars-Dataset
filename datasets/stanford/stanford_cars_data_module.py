@@ -75,7 +75,7 @@ class StanfordCarsOutOfMemory(StanfordCarsDataset):
 
 class StanfordCarsDataModule(LightningDataModule):
 
-    def __init__(self, image_size, batch_size, dataset_type='train', root_path=Path('.')):
+    def __init__(self, image_size, batch_size, root_path=Path('.')):
         super().__init__()
         self.dataset_info = get_data_sources(root_path)['stanford']
         self.annotations = pd.read_csv(self.dataset_info['annotations']['csv_file_path'])
@@ -83,7 +83,6 @@ class StanfordCarsDataModule(LightningDataModule):
 
         self.image_size = image_size
         self.batch_size = batch_size
-        self.dataset_type = dataset_type
 
     def setup(self, stage=None):
         log.info(

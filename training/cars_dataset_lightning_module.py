@@ -40,7 +40,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         # acc = FM.accuracy(pred_class, y, num_classes=self.num_classes)
 
         result = pl.EvalResult(checkpoint_on=loss)
-        # result.log_dict({'val_acc': acc, 'val_loss': loss})
+        result.log_dict({'val_loss': loss})
         return result
 
     def test_step(self, batch, batch_idx):
