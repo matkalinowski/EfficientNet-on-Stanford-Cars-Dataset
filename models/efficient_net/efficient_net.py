@@ -5,24 +5,23 @@ from models.efficient_net.Swish import Swish
 from models.efficient_net.block_decoder import BlockDecoder
 from models.efficient_net.block_params import round_filters
 from models.efficient_net.conv_2d import get_same_padding_conv2d
-from models.efficient_net.efficient_net_info import EfficientNetInfo
 from models.efficient_net.mb_conv_block import MBConvBlock
 from training.cars_dataset_lightning_module import StanfordCarsDatasetLightningModule
 
 
 class EfficientNet(StanfordCarsDatasetLightningModule):
 
-    def __init__(self, net_info: EfficientNetInfo, load_weights: bool, freeze_pretrained_weights: bool,
-                 advprop: bool, num_classes, in_channels):
-        image_size = net_info.network_params.compound_scalars.resolution
-        super().__init__(image_size, num_classes, in_channels)
-        self.net_info = net_info
+    def __init__(self, trial_info):
+        net_info = trial_info.model_info
+        self.image_size = net_info.network_params.compound_scalars.resolution
+
+        super().__init__(trial_info)
 
         global_params = net_info.network_params.global_params
         Conv2d = get_same_padding_conv2d(image_size=self.image_size)
 
         out_channels = round_filters(32, net_info.network_params)
-        self._conv_stem = Conv2d(in_channels=in_channels, kernel_size=3, stride=2,
+        self._conv_stem = Conv2d(in_channels=trial_info.in_channels, kernel_size=3, stride=2,
                                  out_channels=out_channels, bias=False)
         self._bn0 = nn.BatchNorm2d(num_features=out_channels, momentum=global_params.batch_norm_momentum,
                                    eps=global_params.batch_norm_epsilon)
@@ -37,16 +36,17 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
 
         self._avg_pooling = nn.AdaptiveAvgPool2d(1)
         self._dropout = nn.Dropout(global_params.dropout_rate)
-        self._classification = nn.Linear(out_channels, num_classes)
+        self._classification = nn.Linear(out_channels, trial_info.num_classes)
         self._swish = Swish()
 
-        if load_weights:
-            self.weights_update(advprop, freeze_pretrained_weights)
+        if trial_info.load_weights:
+            self.weights_update(trial_info.advprop, trial_info.freeze_pretrained_weights)
 
     def weights_update(self, advprop, freeze_pretrained_weights):
         model_dict = self.state_dict()
 
-        pretrained_dict = model_zoo.load_url(self.net_info.get_pretrained_url(advprop))
+        pretrained_dict = model_zoo.load_url(self.data_directory, annotations, class_names, image_size,
+                                             is_test.get_pretrained_url(advprop))
         pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
         if freeze_pretrained_weights:
             self.freeze_weights(pretrained_dict)
@@ -59,11 +59,11 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
                 param.requires_grad = False
 
     def build_blocks(self):
-        global_params = self.net_info.network_params.global_params
+        global_params = self.trial_info.model_info.network_params.global_params
 
         blocks = nn.ModuleList([])
-        for block_args in BlockDecoder.decode(self.net_info.block_args):
-            block_args = block_args.round_block(network_params=self.net_info.network_params)
+        for block_args in BlockDecoder.decode(self.trial_info.model_info.block_args):
+            block_args = block_args.round_block(network_params=self.trial_info.model_info.network_params)
 
             blocks.append(MBConvBlock(block_args, global_params, self.image_size))
             if block_args.num_repeat > 1:
@@ -80,7 +80,7 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
 
         # Blocks
         for idx, block in enumerate(self._blocks):
-            drop_connect_rate = self.net_info.network_params.global_params.drop_connect_rate
+            drop_connect_rate = self.trial_info.model_info.network_params.global_params.drop_connect_rate
             if drop_connect_rate:
                 drop_connect_rate *= float(idx) / len(self._blocks)
             x = block(x, drop_connect_rate=drop_connect_rate)

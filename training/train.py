@@ -13,43 +13,48 @@ log = configure_default_logging(__name__)
 
 
 def perform_training(
-        epochs,
-        batch_size,
-        model_info: EfficientNets,
+        trial_info: TrialInfo,
         training_data=None,
-        load_weights=False,
-        freeze_pretrained_weights=False,
-        advprop=False,
-):
-    model = EfficientNet(
-        net_info=model_info.value,
-        load_weights=load_weights,
-        freeze_pretrained_weights=freeze_pretrained_weights,
-        advprop=advprop,
-        num_classes=196,
-        in_channels=3,
-    )
-    if training_data is None:
-        training_data = StanfordCarsDataModule(batch_size=batch_size, image_size=model.image_size)
 
-    trial_info = TrialInfo(model_info, load_weights, advprop, freeze_pretrained_weights, epochs, batch_size)
+):
+    model = EfficientNet(trial_info=trial_info)
+    if training_data is None:
+        training_data = StanfordCarsDataModule(batch_size=trial_info.batch_size, image_size=model.image_size)
+
     neptune_logger = NeptuneLogger(
         project_name="matkalinowski/sandbox",
         experiment_name=f"{str(trial_info)}_custom_linear_unit_freezed_pretrained_params",
         tags=['test']
     )
 
-    checkpoint = ModelCheckpoint(filepath=str(trial_info.output_folder))
+    early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
+        monitor='val_loss',
+        min_delta=0.0,
+        patience=10,
+        mode='min'
+    )
+
+    checkpoint_callback = ModelCheckpoint(filepath=str(trial_info.output_folder))
     callback = StanfordCarsDatasetCallback(trial_info)
-    trainer = pl.Trainer(max_epochs=epochs,
+    trainer = pl.Trainer(max_epochs=trial_info.epochs,
                          gpus=1,
-                         # fast_dev_run=True,
+                         fast_dev_run=True,
                          logger=neptune_logger,
-                         callbacks=[callback],
-                         checkpoint_callback=checkpoint
+                         # callbacks=[callback],
+                         checkpoint_callback=checkpoint_callback,
+                         early_stop_callback=early_stop_callback
                          )
     trainer.fit(model, datamodule=training_data)
 
 
 if __name__ == '__main__':
-    perform_training(10, 16, EfficientNets.b1)
+    perform_training(trial_info=TrialInfo(model_info=EfficientNets.b0.value,
+                                          load_weights=False,
+                                          advprop=False,
+                                          freeze_pretrained_weights=False,
+                                          epochs=20,
+                                          batch_size=20,
+                                          initial_lr=1e-4,
+                                          num_classes=196,
+                                          in_channels=3,
+                                          ))

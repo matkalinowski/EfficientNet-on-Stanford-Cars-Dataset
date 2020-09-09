@@ -13,12 +13,17 @@ from utils.folders import create_date_folder, mkdir_if_not_exists
 @dataclass
 class TrialInfo:
     model_info: EfficientNets
+
     load_weights: bool
     advprop: bool
     freeze_pretrained_weights: bool
+
     epochs: int
     batch_size: int
+    initial_lr: float
 
+    num_classes: int
+    in_channels: int
 
     # auto-generated
     output_folder: Path = None
@@ -46,4 +51,4 @@ class TrialInfo:
             df.to_csv(path, header=True)
 
     def __str__(self):
-        return f'{self.model_info.value.name}-{str(self.trial_id)}'
+        return f'{self.model_info.name}-{str(self.trial_id)}'

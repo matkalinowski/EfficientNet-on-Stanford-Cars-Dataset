@@ -82,6 +82,14 @@ def _calculate_metrics(trainer, data, prefix):
     return metrics
 
 
+def log_dictionary(dictionary, trainer):
+    for k, v in dictionary.items():
+        try:
+            trainer.logger.experiment.log_metric(k, v)
+        except TypeError:
+            trainer.logger.experiment.log_text(k, str(v))
+
+
 class StanfordCarsDatasetCallback(Callback):
 
     def __init__(self, trial_info: TrialInfo):
@@ -96,13 +104,9 @@ class StanfordCarsDatasetCallback(Callback):
         if trainer.logger is not None:
             trainer.logger.experiment.log_metric('on_colab', is_on_colab())
             trial_info = self.trial_info.get_trial_info()
-            self.log_dictionary(trial_info, trainer)
+            log_dictionary(trial_info, trainer)
             model_info = calculate_model_info(trainer.model, image_size=trainer.model.image_size)
-            self.log_dictionary(model_info, trainer)
-
-    def log_dictionary(self, dictionary, trainer):
-        for k, v in dictionary.items():
-            trainer.logger.experiment.log_metric(k, v)
+            log_dictionary(model_info, trainer)
 
     def on_train_end(self, trainer, pl_module):
         """Called when the train ends."""
@@ -122,6 +126,7 @@ class StanfordCarsDatasetCallback(Callback):
         self.lap_times.append(time() - self.lap_start)
         if trainer.logger is not None:
             trainer.logger.experiment.log_metric('lap_time', self.lap_times[-1])
+            trainer.logger.experiment.log_metric('lr', trainer.optimizer.param_groups[0]['lr'])
 
     def on_train_epoch_end(self, trainer, pl_module):
         _calculate_metrics(trainer, trainer.datamodule.train_data, prefix='train')

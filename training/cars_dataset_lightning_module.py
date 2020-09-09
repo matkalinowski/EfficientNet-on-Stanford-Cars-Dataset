@@ -2,25 +2,19 @@ from abc import ABC
 
 import pytorch_lightning as pl
 import torch
-from sklearn.metrics import classification_report
-from torch.nn import CrossEntropyLoss
-from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from training.label_smoothing_cross_entropy import LabelSmoothingCrossEntropy
 from utils.default_logging import configure_default_logging
-from utils.metrics import top_k_accuracy
-from pytorch_lightning.metrics import functional as FM
 
 log = configure_default_logging(__name__)
 
 
 class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
 
-    def __init__(self, image_size, num_classes, in_channels):
+    def __init__(self, trial_info):
         super().__init__()
-        self.image_size = image_size
-        self.num_classes = num_classes
-        self.in_channels = in_channels
+        self.trial_info = trial_info
         self.loss = LabelSmoothingCrossEntropy()
 
     def training_step(self, batch, batch_idx):
@@ -43,10 +37,13 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         result.log_dict({'val_loss': loss})
         return result
 
-    def test_step(self, batch, batch_idx):
-        result = self.validation_step(batch, batch_idx)
-        result.rename_keys({'val_acc': 'test_acc', 'val_loss': 'test_loss'})
-        return result
-
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=1e-4)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.trial_info.initial_lr)
+        # fix according to: https://github.com/PyTorchLightning/pytorch-lightning/issues/2976
+        scheduler = {
+            'scheduler': ReduceLROnPlateau(optimizer),
+            'reduce_on_plateau': True,
+            # val_checkpoint_on is val_loss passed in as checkpoint_on
+            'monitor': 'val_checkpoint_on'
+        }
+        return [optimizer], [scheduler]
