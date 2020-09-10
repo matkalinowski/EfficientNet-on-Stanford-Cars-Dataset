@@ -5,6 +5,8 @@ You can find other networks comparision [here](https://paperswithcode.com/sota/f
 
 You can find original implementation in tensorflow [here](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet).
 
+Relevant experiments can be found on [this neptune dashboard](https://ui.neptune.ai/matkalinowski/sandbox/experiments?viewId=47196815-c2a8-4a2b-bb7c-cf3d146805ac).
+
 ### Howto
 
 This project uses virutalenv as a package manager. To install it automatically use setup.sh script. I was using python 3.8.5.
