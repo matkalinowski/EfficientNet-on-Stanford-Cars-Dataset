@@ -1,4 +1,5 @@
 import os
+from enum import auto, Enum
 from pathlib import Path
 
 import pandas as pd
@@ -14,23 +15,43 @@ from utils.default_logging import configure_default_logging
 log = configure_default_logging(__name__)
 
 
+class DatasetTypes(Enum):
+    TRAIN = auto()
+    VALIDATION = auto()
+
+
 class StanfordCarsDataset(Dataset):
-    def __init__(self, data_directory, annotations, image_size, is_test):
+    def __init__(self, data_directory, annotations, image_size, dataset_type: DatasetTypes):
         self.data_directory = data_directory
         self.annotations = annotations
         self.image_size = image_size
+        self.dataset_type = dataset_type
 
+        is_test = int(dataset_type != DatasetTypes.TRAIN)
         self.image_file_names = annotations[annotations.test == is_test].relative_im_path
 
     def transform(self, image):
-        transform_ops = transforms.Compose([
-            transforms.Resize((self.image_size, self.image_size)),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225]
-            ),
-        ])
+        if self.dataset_type is DatasetTypes.TRAIN:
+            transform_ops = transforms.Compose([
+                transforms.Resize((self.image_size, self.image_size)),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomAffine(25, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=8),
+                transforms.ToTensor(),
+                transforms.RandomErasing(p=0.5, scale=(0.02, 0.25)),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]
+                ),
+            ])
+        else:
+            transform_ops = transforms.Compose([
+                transforms.Resize((self.image_size, self.image_size)),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]
+                ),
+            ])
         return transform_ops(image)
 
     def load_transform(self, image_file_name):
@@ -44,8 +65,8 @@ class StanfordCarsDataset(Dataset):
 
 
 class StanfordCarsInMemory(StanfordCarsDataset):
-    def __init__(self, data_directory, annotations, image_size, is_test):
-        super().__init__(data_directory, annotations, image_size, is_test)
+    def __init__(self, data_directory, annotations, image_size, dataset_type: DatasetTypes):
+        super().__init__(data_directory, annotations, image_size, dataset_type)
         self.data = self.read_all_images()
         self.labels = self.read_all_labels()
 
@@ -63,8 +84,8 @@ class StanfordCarsInMemory(StanfordCarsDataset):
 
 
 class StanfordCarsOutOfMemory(StanfordCarsDataset):
-    def __init__(self, data_directory, annotations, image_size, is_test):
-        super().__init__(data_directory, annotations, image_size, is_test)
+    def __init__(self, data_directory, annotations, image_size, dataset_type: DatasetTypes):
+        super().__init__(data_directory, annotations, image_size, dataset_type)
 
     def __getitem__(self, index):
         file_name = self.image_file_names.iloc[index]
@@ -88,9 +109,9 @@ class StanfordCarsDataModule(LightningDataModule):
         log.info(
             f"Loading train data from: {self.dataset_info['data_dir']}; image size: {self.image_size}")
         self.train_data = StanfordCarsOutOfMemory(self.dataset_info['data_dir'], self.annotations,
-                                                  self.image_size, is_test=0)
+                                                  self.image_size, DatasetTypes.TRAIN)
         self.val_data = StanfordCarsOutOfMemory(self.dataset_info['data_dir'], self.annotations,
-                                                self.image_size, is_test=1)
+                                                self.image_size, DatasetTypes.VALIDATION)
 
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, pin_memory=True)
