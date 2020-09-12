@@ -63,30 +63,6 @@ class StanfordCarsDataset(Dataset):
     def __len__(self):
         return len(self.image_file_names)
 
-
-class StanfordCarsInMemory(StanfordCarsDataset):
-    def __init__(self, data_directory, annotations, image_size, dataset_type: DatasetTypes):
-        super().__init__(data_directory, annotations, image_size, dataset_type)
-        self.data = self.read_all_images()
-        self.labels = self.read_all_labels()
-
-    def __getitem__(self, index):
-        return self.data[index], self.labels[index]
-
-    def read_all_images(self):
-        return [self.load_transform(file_name) for file_name in self.image_file_names]
-
-    def read_all_labels(self):
-        return torch.as_tensor(
-            [self.annotations[self.annotations['relative_im_path'] == file_name]['class'].values[0]
-             for file_name in self.image_file_names],
-            dtype=torch.long)
-
-
-class StanfordCarsOutOfMemory(StanfordCarsDataset):
-    def __init__(self, data_directory, annotations, image_size, dataset_type: DatasetTypes):
-        super().__init__(data_directory, annotations, image_size, dataset_type)
-
     def __getitem__(self, index):
         file_name = self.image_file_names.iloc[index]
         image = self.load_transform(image_file_name=file_name)
@@ -108,10 +84,10 @@ class StanfordCarsDataModule(LightningDataModule):
     def setup(self, stage=None):
         log.info(
             f"Loading train data from: {self.dataset_info['data_dir']}; image size: {self.image_size}")
-        self.train_data = StanfordCarsOutOfMemory(self.dataset_info['data_dir'], self.annotations,
-                                                  self.image_size, DatasetTypes.TRAIN)
-        self.val_data = StanfordCarsOutOfMemory(self.dataset_info['data_dir'], self.annotations,
-                                                self.image_size, DatasetTypes.VALIDATION)
+        self.train_data = StanfordCarsDataset(self.dataset_info['data_dir'], self.annotations, self.image_size,
+                                              DatasetTypes.TRAIN)
+        self.val_data = StanfordCarsDataset(self.dataset_info['data_dir'], self.annotations, self.image_size,
+                                            DatasetTypes.VALIDATION)
 
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=4)
