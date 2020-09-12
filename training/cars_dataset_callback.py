@@ -110,7 +110,8 @@ class StanfordCarsDatasetCallback(Callback):
             trainer.logger.experiment.log_metric('on_colab', is_on_colab())
             trial_info = self.trial_info.get_trial_info()
             log_dictionary(trial_info, trainer)
-            model_info = calculate_model_info(trainer.model, image_size=trainer.model.image_size)
+            model_info = calculate_model_info(trainer.model, image_size=trainer.model.image_size,
+                                              color_channels=self.trial_info.in_channels)
             log_dictionary(model_info, trainer)
 
     def on_train_end(self, trainer, pl_module):
