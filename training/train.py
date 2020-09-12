@@ -57,9 +57,9 @@ if __name__ == '__main__':
                                           load_weights=False,
                                           advprop=False,
                                           freeze_pretrained_weights=False,
-                                          epochs=20,
-                                          batch_size=8,
-                                          initial_lr=1e-4,
+                                          epochs=50,
+                                          batch_size=32,
+                                          initial_lr=1e-3,
                                           num_classes=196,
                                           in_channels=3,
                                           ))
