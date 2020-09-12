@@ -45,8 +45,7 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
     def weights_update(self, advprop, freeze_pretrained_weights):
         model_dict = self.state_dict()
 
-        pretrained_dict = model_zoo.load_url(self.data_directory, annotations, class_names, image_size,
-                                             is_test.get_pretrained_url(advprop))
+        pretrained_dict = model_zoo.load_url(self.trial_info.model_info.get_pretrained_url(advprop))
         pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
         if freeze_pretrained_weights:
             self.freeze_weights(pretrained_dict)

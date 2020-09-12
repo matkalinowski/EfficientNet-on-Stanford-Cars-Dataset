@@ -33,6 +33,7 @@ class StanfordCarsDataset(Dataset):
     def transform(self, image):
         if self.dataset_type is DatasetTypes.TRAIN:
             transform_ops = transforms.Compose([
+                transforms.Grayscale(),
                 transforms.Resize((self.image_size, self.image_size)),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomAffine(25, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=8),

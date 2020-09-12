@@ -61,5 +61,5 @@ if __name__ == '__main__':
                                           batch_size=32,
                                           initial_lr=1e-3,
                                           num_classes=196,
-                                          in_channels=3,
+                                          in_channels=1,
                                           ))
