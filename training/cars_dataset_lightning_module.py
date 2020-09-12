@@ -2,6 +2,7 @@ from abc import ABC
 
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning.metrics import functional as FM
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from training.label_smoothing_cross_entropy import LabelSmoothingCrossEntropy
@@ -31,10 +32,10 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         pred = self(x)
         loss = self.loss(pred, y)
         # pred_class = pred.max(axis=1).indices
-        # acc = FM.accuracy(pred_class, y, num_classes=self.num_classes)
+        acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
 
         result = pl.EvalResult(checkpoint_on=loss)
-        result.log_dict({'val_loss': loss})
+        result.log_dict({'val_loss': loss, 'lightning_acc': acc})
         return result
 
     def configure_optimizers(self):

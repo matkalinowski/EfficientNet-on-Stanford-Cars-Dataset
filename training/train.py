@@ -15,15 +15,17 @@ log = configure_default_logging(__name__)
 def perform_training(
         trial_info: TrialInfo,
         training_data=None,
+        model=None,
 
 ):
-    model = EfficientNet(trial_info=trial_info)
+    if model is None:
+        model = EfficientNet(trial_info=trial_info)
     if training_data is None:
         training_data = StanfordCarsDataModule(batch_size=trial_info.batch_size, image_size=model.image_size)
 
     neptune_logger = NeptuneLogger(
         project_name="matkalinowski/sandbox",
-        experiment_name=f"{str(trial_info)}_custom_linear_unit_freezed_pretrained_params",
+        experiment_name=f"{str(trial_info)}",
         tags=['test']
     )
 
