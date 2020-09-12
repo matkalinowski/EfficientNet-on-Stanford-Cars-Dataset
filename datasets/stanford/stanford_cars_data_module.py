@@ -39,19 +39,20 @@ class StanfordCarsDataset(Dataset):
                 transforms.RandomAffine(25, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=8),
                 transforms.ToTensor(),
                 transforms.RandomErasing(p=0.5, scale=(0.02, 0.25)),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406],
-                    std=[0.229, 0.224, 0.225]
-                ),
+                # transforms.Normalize(
+                #     mean=[0.485, 0.456, 0.406],
+                #     std=[0.229, 0.224, 0.225]
+                # ),
             ])
         else:
             transform_ops = transforms.Compose([
+                transforms.Grayscale(),
                 transforms.Resize((self.image_size, self.image_size)),
                 transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406],
-                    std=[0.229, 0.224, 0.225]
-                ),
+                # transforms.Normalize(
+                #     mean=[0.485, 0.456, 0.406],
+                #     std=[0.229, 0.224, 0.225]
+                # ),
             ])
         return transform_ops(image)
 
