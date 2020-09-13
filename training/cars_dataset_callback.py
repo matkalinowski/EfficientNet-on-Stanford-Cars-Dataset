@@ -134,10 +134,12 @@ class StanfordCarsDatasetCallback(Callback):
             trainer.logger.experiment.log_metric('lap_time', self.lap_times[-1])
 
     def on_train_epoch_end(self, trainer, pl_module):
-        _calculate_metrics(trainer, trainer.datamodule.train_data, prefix='train')
+        pass
+        # _calculate_metrics(trainer, trainer.datamodule.train_data, prefix='train')
 
     def on_validation_epoch_end(self, trainer, pl_module):
-        _calculate_metrics(trainer, trainer.datamodule.val_data, prefix='val')
+        pass
+        # _calculate_metrics(trainer, trainer.datamodule.val_data, prefix='val')
 
     # def on_test_epoch_end(self, trainer, pl_module):
     #     _calculate_metrics(trainer, trainer.datamodule.test_data, prefix='test')

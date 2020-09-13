@@ -62,4 +62,5 @@ if __name__ == '__main__':
                                           initial_lr=1e-3,
                                           num_classes=196,
                                           in_channels=1,
+                                          optimizer_weight_decay=0.1
                                           ))
