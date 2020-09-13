@@ -1,6 +1,7 @@
 import time
 from pathlib import Path
 from typing import Union, Optional
+
 import pandas as pd
 
 from utils.default_logging import configure_default_logging
@@ -9,7 +10,10 @@ from utils.folders import mkdir_if_not_exists
 log = configure_default_logging(__name__)
 
 
-def form_final_path(directory, filename, extension='csv.bz2'):
+def form_final_path(directory, filename, compression: Optional[str]):
+    extension = 'csv'
+    if compression:
+        extension += compression
     mkdir_if_not_exists(directory)
     final_path = directory / f'{filename}.{extension}'
     return final_path
@@ -24,7 +28,7 @@ def get_file_path_with_timestamp(directory: Union[Path, str], filename: str, ext
 
 def save_csv(df: pd.DataFrame, directory: Path, filename: str, compression: Optional[str] = 'bz2',
              append=True) -> None:
-    final_path = form_final_path(directory, filename)
+    final_path = form_final_path(directory, filename, compression)
     if final_path.exists() and append:
         log.info(f'Appending file {final_path}')
         df.to_csv(final_path, compression=compression, mode='a', header=False)
@@ -37,4 +41,3 @@ def read_csv(directory: Path, filename: str, compression: str = 'bz2') -> pd.Dat
     final_path = form_final_path(directory, filename)
     log.info(f'Reading file from: {final_path}')
     return pd.read_csv(final_path, compression=compression)
-
