@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 
 from config.structure import get_data_sources
-from training.trial_info import TrialInfo
 from utils.default_logging import configure_default_logging
 
 log = configure_default_logging(__name__)
@@ -35,7 +34,6 @@ class StanfordCarsDataset(Dataset):
     def transform(self, image):
         if self.dataset_type is DatasetTypes.TRAIN:
             transform_ops = [
-                transforms.Grayscale(),
                 transforms.Resize((self.image_size, self.image_size)),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomAffine(25, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=8),
@@ -43,21 +41,19 @@ class StanfordCarsDataset(Dataset):
                 transforms.RandomErasing(p=0.5, scale=(0.02, 0.25)),
             ]
         else:
-            transform_ops = transforms.Compose([
+            transform_ops = [
                 transforms.Resize((self.image_size, self.image_size)),
-            ])
-
+                transforms.ToTensor(),
+            ]
         if self.greyscale_conversion:
-            transforms.Compose([transforms.Grayscale(), transform_ops])
+            transform_ops = [transforms.Grayscale(), *transform_ops]
         else:
-            transforms.Compose([transform_ops,
-                                transforms.ToTensor(),
-                                transforms.Normalize(
-                                    mean=[0.485, 0.456, 0.406],
-                                    std=[0.229, 0.224, 0.225]
-                                ), ])
+            transform_ops = [*transform_ops, transforms.Normalize(
+                mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225]
+            )]
 
-        return transform_ops(image)
+        return transforms.Compose(transform_ops)(image)
 
     def load_transform(self, image_file_name):
         image_fp = os.path.join(self.data_directory, image_file_name)
