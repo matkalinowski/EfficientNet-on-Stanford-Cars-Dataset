@@ -21,6 +21,7 @@ class TrialInfo:
     epochs: int
     batch_size: int
     initial_lr: float
+    optimizer_weight_decay: float
 
     num_classes: int
     in_channels: int

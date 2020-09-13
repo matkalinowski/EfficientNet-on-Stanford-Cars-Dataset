@@ -23,23 +23,26 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         pred = self(x)
         loss = self.loss(pred, y)
 
+        acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
         result = pl.TrainResult(loss)
-        result.log_dict({'train_loss': loss})
+        result.log_dict({'train_loss': loss, 'train_acc': acc})
         return result
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         pred = self(x)
         loss = self.loss(pred, y)
-        # pred_class = pred.max(axis=1).indices
         acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
 
         result = pl.EvalResult(checkpoint_on=loss)
-        result.log_dict({'val_loss': loss, 'lightning_acc': acc})
+        result.log_dict({'val_loss': loss, 'val_acc': acc})
         return result
 
+
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.trial_info.initial_lr)
+        optimizer = torch.optim.Adam(self.parameters(),
+                                     lr=self.trial_info.initial_lr,
+                                     weight_decay=self.trial_info.optimizer_weight_decay)
         # fix according to: https://github.com/PyTorchLightning/pytorch-lightning/issues/2976
         scheduler = {
             'scheduler': ReduceLROnPlateau(optimizer, verbose=True),
