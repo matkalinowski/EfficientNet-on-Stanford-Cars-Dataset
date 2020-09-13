@@ -45,7 +45,7 @@ def perform_training(
 
     trainer = pl.Trainer(max_epochs=trial_info.epochs,
                          gpus=1,
-                         fast_dev_run=True,
+                         # fast_dev_run=True,
                          logger=neptune_logger,
                          callbacks=[callback, lrl],
                          checkpoint_callback=checkpoint_callback,
