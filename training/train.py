@@ -1,4 +1,5 @@
 import pytorch_lightning as pl
+import torch
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateLogger
 from pytorch_lightning.loggers import NeptuneLogger
 
@@ -27,8 +28,7 @@ def perform_training(
 
     neptune_logger = NeptuneLogger(
         project_name="matkalinowski/sandbox",
-        experiment_name=f"{str(trial_info)}",
-        tags=['test']
+        experiment_name=f"{str(trial_info)}"
     )
 
     early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
@@ -45,7 +45,7 @@ def perform_training(
 
     trainer = pl.Trainer(max_epochs=trial_info.epochs,
                          gpus=1,
-                         # fast_dev_run=True,
+                         fast_dev_run=True,
                          logger=neptune_logger,
                          callbacks=[callback, lrl],
                          checkpoint_callback=checkpoint_callback,
@@ -62,7 +62,7 @@ if __name__ == '__main__':
                                           epochs=100,
                                           batch_size=32,
                                           initial_lr=1e-3,
+                                          optimizer=torch.optim.AdamW,
                                           num_classes=196,
                                           in_channels=1,
-                                          optimizer_weight_decay=0.1
                                           ))

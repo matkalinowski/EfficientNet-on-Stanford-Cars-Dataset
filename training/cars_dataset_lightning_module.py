@@ -40,9 +40,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
 
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(),
-                                     lr=self.trial_info.initial_lr,
-                                     weight_decay=self.trial_info.optimizer_weight_decay)
+        optimizer = self.trial_info.optimizer(self.parameters(), lr=self.trial_info.initial_lr)
         # fix according to: https://github.com/PyTorchLightning/pytorch-lightning/issues/2976
         scheduler = {
             'scheduler': ReduceLROnPlateau(optimizer, verbose=True),

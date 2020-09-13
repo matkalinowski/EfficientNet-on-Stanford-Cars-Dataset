@@ -4,6 +4,7 @@ from pathlib import Path
 from uuid import UUID, uuid1
 
 import pandas as pd
+from torch.optim import Optimizer
 
 from config.structure import get_project_structure
 from models.efficient_net.efficient_nets import EfficientNets
@@ -21,7 +22,7 @@ class TrialInfo:
     epochs: int
     batch_size: int
     initial_lr: float
-    optimizer_weight_decay: float
+    optimizer: Optimizer
 
     num_classes: int
     in_channels: int
