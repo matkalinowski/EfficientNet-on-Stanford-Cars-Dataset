@@ -21,7 +21,9 @@ def perform_training(
     if model is None:
         model = EfficientNet(trial_info=trial_info)
     if training_data is None:
-        training_data = StanfordCarsDataModule(batch_size=trial_info.batch_size, image_size=model.image_size)
+        training_data = StanfordCarsDataModule(batch_size=trial_info.batch_size,
+                                               in_channels=trial_info.in_channels,
+                                               image_size=model.image_size)
 
     neptune_logger = NeptuneLogger(
         project_name="matkalinowski/sandbox",
