@@ -63,6 +63,7 @@ if __name__ == '__main__':
                                           batch_size=32,
                                           initial_lr=1e-3,
                                           optimizer=torch.optim.AdamW,
+                                          optimizer_settings=dict(weight_decay=0.1),
                                           num_classes=196,
-                                          in_channels=1,
+                                          in_channels=3,
                                           ))

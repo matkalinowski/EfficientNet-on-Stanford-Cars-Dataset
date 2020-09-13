@@ -1,7 +1,6 @@
 from abc import ABC
 
 import pytorch_lightning as pl
-import torch
 from pytorch_lightning.metrics import functional as FM
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
@@ -38,9 +37,9 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         result.log_dict({'val_loss': loss, 'val_acc': acc})
         return result
 
-
     def configure_optimizers(self):
-        optimizer = self.trial_info.optimizer(self.parameters(), lr=self.trial_info.initial_lr)
+        optimizer = self.trial_info.optimizer(self.parameters(), lr=self.trial_info.initial_lr,
+                                              **self.trial_info.optimizer_settings)
         # fix according to: https://github.com/PyTorchLightning/pytorch-lightning/issues/2976
         scheduler = {
             'scheduler': ReduceLROnPlateau(optimizer, verbose=True),

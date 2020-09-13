@@ -1,6 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Dict
 from uuid import UUID, uuid1
 
 import pandas as pd
@@ -23,6 +24,7 @@ class TrialInfo:
     batch_size: int
     initial_lr: float
     optimizer: Optimizer
+    optimizer_settings: Dict
 
     num_classes: int
     in_channels: int
