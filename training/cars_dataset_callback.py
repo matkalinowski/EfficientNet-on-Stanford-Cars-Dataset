@@ -60,7 +60,7 @@ def _log_metrics(metrics, trainer):
 
 
 def _calculate_metrics(trainer, data, prefix):
-    log.debug(f'Calculating metrics for {prefix}')
+    log.debug(f'Calculating metrics for {prefix} set')
     y_true, y_pred, y_pred_class = _predict(trainer.model, DataLoader(data, batch_size=150))
 
     metrics = top_k_accuracy(y_pred, y_true, (1, 3, 5, 10))
@@ -84,7 +84,8 @@ def _calculate_metrics(trainer, data, prefix):
 
     metrics = {f'{prefix}_{k}': v for k, v in metrics.items()}
     _log_metrics(metrics, trainer)
-    return metrics
+    log.debug(f'Metrics calculation for {prefix} set ended')
+    return metrics,
 
 
 def log_dictionary(dictionary, trainer):
@@ -122,6 +123,8 @@ class StanfordCarsDatasetCallback(Callback):
             log.info('Uploading model to logger.')
             trainer.logger.experiment.log_artifact(str(self.trial_info.output_folder))
             trainer.logger.experiment.stop()
+        _calculate_metrics(trainer, trainer.datamodule.train_data, prefix='train')
+        _calculate_metrics(trainer, trainer.datamodule.val_data, prefix='val')
 
     def on_epoch_start(self, trainer, pl_module):
         """Called when the epoch begins."""
@@ -132,14 +135,3 @@ class StanfordCarsDatasetCallback(Callback):
         self.lap_times.append(time() - self.lap_start)
         if trainer.logger is not None:
             trainer.logger.experiment.log_metric('lap_time', self.lap_times[-1])
-
-    def on_train_epoch_end(self, trainer, pl_module):
-        pass
-        # _calculate_metrics(trainer, trainer.datamodule.train_data, prefix='train')
-
-    def on_validation_epoch_end(self, trainer, pl_module):
-        pass
-        # _calculate_metrics(trainer, trainer.datamodule.val_data, prefix='val')
-
-    # def on_test_epoch_end(self, trainer, pl_module):
-    #     _calculate_metrics(trainer, trainer.datamodule.test_data, prefix='test')
