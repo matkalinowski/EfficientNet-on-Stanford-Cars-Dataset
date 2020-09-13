@@ -25,6 +25,7 @@ class TrialInfo:
     initial_lr: float
     optimizer: Optimizer
     optimizer_settings: Dict
+    scheduler_settings: Dict
 
     num_classes: int
     in_channels: int

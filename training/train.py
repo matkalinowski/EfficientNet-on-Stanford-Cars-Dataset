@@ -64,6 +64,7 @@ if __name__ == '__main__':
                                           initial_lr=1e-3,
                                           optimizer=torch.optim.AdamW,
                                           optimizer_settings=dict(weight_decay=0.1),
+                                          scheduler_settings=dict(patience=3),
                                           num_classes=196,
                                           in_channels=3,
                                           ))
