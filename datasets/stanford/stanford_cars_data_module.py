@@ -16,8 +16,8 @@ log = configure_default_logging(__name__)
 
 
 class DatasetTypes(Enum):
-    TRAIN = auto()
-    VALIDATION = auto()
+    train = auto()
+    val = auto()
 
 
 class StanfordCarsDataset(Dataset):
@@ -28,11 +28,11 @@ class StanfordCarsDataset(Dataset):
         self.dataset_type = dataset_type
         self.greyscale_conversion = in_channels == 1
 
-        is_test = int(dataset_type != DatasetTypes.TRAIN)
+        is_test = int(dataset_type != DatasetTypes.train)
         self.image_file_names = annotations[annotations.test == is_test].relative_im_path
 
     def transform(self, image):
-        if self.dataset_type is DatasetTypes.TRAIN:
+        if self.dataset_type is DatasetTypes.train:
             transform_ops = [
                 transforms.Resize((self.image_size, self.image_size)),
                 transforms.RandomHorizontalFlip(),
@@ -87,9 +87,9 @@ class StanfordCarsDataModule(LightningDataModule):
         log.info(
             f"Loading train data from: {self.dataset_info['data_dir']}; image size: {self.image_size}")
         self.train_data = StanfordCarsDataset(self.dataset_info['data_dir'], self.annotations, self.image_size,
-                                              DatasetTypes.TRAIN, self.in_channels)
+                                              DatasetTypes.train, self.in_channels)
         self.val_data = StanfordCarsDataset(self.dataset_info['data_dir'], self.annotations, self.image_size,
-                                            DatasetTypes.VALIDATION, self.in_channels)
+                                            DatasetTypes.val, self.in_channels)
 
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=4)

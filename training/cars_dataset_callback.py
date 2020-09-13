@@ -5,34 +5,29 @@ from pytorch_lightning import Callback
 from sklearn.metrics import classification_report
 from torch.utils.data import DataLoader
 
+from datasets.stanford.stanford_cars_data_module import DatasetTypes, StanfordCarsDataset
 from training.trial_info import TrialInfo
 from utils.default_logging import configure_default_logging
 from utils.environment import is_on_colab
+from utils.files import save_csv
 from utils.metrics import top_k_accuracy
 from utils.misc import calculate_model_info
 
 log = configure_default_logging(__name__)
 
 
-# onnx_file_name = "EfficientNet_b0.onnx"
-# torch_out = torch.onnx.export(model, example_batch_input, onnx_file_name, export_params=True)
-
-# example_batch_input = torch.rand([1, 3, 224, 224], requires_grad=True)
-# with torch.autograd.profiler.profile() as prof:
-#     model(example_batch_input)
-# # NOTE: some columns were removed for brevity
-# print(prof.key_averages().table(sort_by="self_cpu_time_total"))
-
 def _predict(model, data_loader):
     """
-    Make predictions
-    model.eval() will notify all your layers that you are in eval mode, that way, batchnorm or dropout layers will work in eval mode instead of training mode.
-    torch.no_grad() impacts the autograd engine and deactivate it. It will reduce memory usage and speed up computations but you won’t be able to backprop (which you don’t want in an eval script).
+    Make predictions; additional info:
+    - model.eval() will notify all your layers that you are in eval mode, that way, batchnorm or dropout layers
+     will work in eval mode instead of training mode.
+    - torch.no_grad() impacts the autograd engine and deactivate it. It will reduce memory usage and speed up
+     computations but you won’t be able to backprop (which you don’t want in an eval script).
     """
     model.eval()
 
-    y_true = torch.tensor([], dtype=torch.long, device=model.device)
-    y_pred = torch.tensor([], device=model.device)
+    target = torch.tensor([], dtype=torch.long, device=model.device)
+    pred = torch.tensor([], device=model.device)
 
     with torch.no_grad():
         for data in data_loader:
@@ -40,52 +35,71 @@ def _predict(model, data_loader):
             labels = data[-1].to(model.device)
 
             outputs = model(*inputs)
-            y_true = torch.cat((y_true, labels), 0)
-            y_pred = torch.cat((y_pred, outputs), 0)
+            target = torch.cat((target, labels), 0)
+            pred = torch.cat((pred, outputs), 0)
 
-    _, y_pred_class = torch.max(y_pred, 1)
+    _, pred_class = torch.max(pred, 1)
 
-    log.debug(f'Head of predicted classes: {y_pred_class[:10]}')
+    log.debug(f'Head of predicted classes: {pred_class[:10]}')
 
     model.train()
-
-    return y_true, y_pred, y_pred_class
+    return target, pred, pred_class
 
 
 def _log_metrics(metrics, trainer):
-    log.info(f'{metrics}')
+    log.info(f'Metrics results:\n{metrics}')
     if trainer.logger is not None:
         for name, metric in metrics.items():
             trainer.logger.experiment.log_metric(name, metric)
 
 
-def _calculate_metrics(trainer, data, prefix):
-    log.debug(f'Calculating metrics for {prefix} set')
-    y_true, y_pred, y_pred_class = _predict(trainer.model, DataLoader(data, batch_size=150))
+def _calculate_store_metrics(trainer, dataset: StanfordCarsDataset):
+    prefix = dataset.dataset_type.name
 
-    metrics = top_k_accuracy(y_pred, y_true, (1, 3, 5, 10))
+    log.debug(f'Calculating metrics on whole {prefix} set')
+    target, pred, pred_class = _predict(trainer.model, DataLoader(dataset, batch_size=150))
 
-    pred_class_numpy = y_pred_class.cpu().numpy()
-    y_numpy = y_true.cpu().numpy()
+    pred_class_numpy = pred_class.cpu().numpy()
+    target_numpy = target.cpu().numpy()
 
-    # logs['multi_label_confusion_matrix_results'] = multilabel_confusion_matrix(y_numpy, pred_class_numpy)
-    # logs['confusion_matrix'] = plm.ConfusionMatrix()(pred_class, y)
+    # calculating metrics
+    metrics = top_k_accuracy(pred, target, (1, 3, 5, 10))
+    metrics = {**metrics, **get_classification_report_results(pred_class_numpy, target_numpy)}
+    metrics = add_prefix_to_dictionary_key(metrics, prefix)
 
-    # TODO: check this out
-    # from pytorch_lightning.metrics.functional import multiclass_precision_recall_curve
+    # saving results
+    _log_metrics(metrics, trainer)
+    save_predictions(dataset, pred_class_numpy, trainer)
 
+    log.debug(f'Metrics calculation for {prefix} set ended')
+    return metrics
+
+
+def add_prefix_to_dictionary_key(dictionary, prefix):
+    return {f'{prefix}_{k}': v for k, v in dictionary.items()}
+
+
+def get_classification_report_results(pred_class_numpy, target_numpy):
     # to know more: https://towardsdatascience.com/multi-class-metrics-made-simple-part-ii-the-f1-score-ebe8b2c2ca1
-    classification_report_results = classification_report(pred_class_numpy, y_numpy, output_dict=True)
-
+    results = {}
+    classification_report_results = classification_report(pred_class_numpy, target_numpy, output_dict=True)
     for type_of_avg in ['macro avg', 'weighted avg']:
         averaged_results = classification_report_results[type_of_avg]
         for metric in averaged_results.keys():
-            metrics[f"{type_of_avg.replace(' ', '_')}_{metric}"] = averaged_results[metric]
+            results[f"{type_of_avg.replace(' ', '_')}_{metric}"] = averaged_results[metric]
+    return results
 
-    metrics = {f'{prefix}_{k}': v for k, v in metrics.items()}
-    _log_metrics(metrics, trainer)
-    log.debug(f'Metrics calculation for {prefix} set ended')
-    return metrics,
+
+def save_predictions(dataset, pred_class_numpy, trainer):
+    annotations = dataset.annotations
+    is_validation = dataset.dataset_type == DatasetTypes.val
+
+    df = annotations.loc[annotations.test == is_validation, ['relative_im_path', 'class']]
+    df['pred'] = pred_class_numpy
+
+    save_csv(df, trainer.model.trial_info.output_folder,
+             filename=f'{dataset.dataset_type.name}_predictions_{str(trainer.model.trial_info)}',
+             compression=None)
 
 
 def log_dictionary(dictionary, trainer):
@@ -119,12 +133,12 @@ class StanfordCarsDatasetCallback(Callback):
         """Called when the train ends."""
         log.info(f'Training with id: {self.trial_info.trial_id} ended.'
                  f' Results are stored in: {self.trial_info.output_folder}')
+        _calculate_store_metrics(trainer, trainer.datamodule.train_data)
+        _calculate_store_metrics(trainer, trainer.datamodule.val_data)
         if trainer.logger is not None:
             log.info('Uploading model to logger.')
             trainer.logger.experiment.log_artifact(str(self.trial_info.output_folder))
             trainer.logger.experiment.stop()
-        _calculate_metrics(trainer, trainer.datamodule.train_data, prefix='train')
-        _calculate_metrics(trainer, trainer.datamodule.val_data, prefix='val')
 
     def on_epoch_start(self, trainer, pl_module):
         """Called when the epoch begins."""
