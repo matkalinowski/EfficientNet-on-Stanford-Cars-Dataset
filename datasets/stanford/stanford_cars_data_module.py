@@ -45,12 +45,16 @@ class StanfordCarsDataset(Dataset):
                 transforms.Resize((self.image_size, self.image_size)),
                 transforms.ToTensor(),
             ]
+        # numbers calculated in notebooks/normalization_calculation.ipynb
         if self.greyscale_conversion:
-            transform_ops = [transforms.Grayscale(), *transform_ops]
+            transform_ops = [transforms.Grayscale(), transforms.Normalize(
+                mean=[0.462],
+                std=[0.270]
+            ), *transform_ops]
         else:
             transform_ops = [*transform_ops, transforms.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225]
+                mean=[0.470, 0.460, 0.455],
+                std=[0.267, 0.266, 0.270]
             )]
 
         return transforms.Compose(transform_ops)(image)
