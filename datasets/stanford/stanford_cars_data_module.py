@@ -47,10 +47,10 @@ class StanfordCarsDataset(Dataset):
             ]
         # numbers calculated in notebooks/normalization_calculation.ipynb
         if self.greyscale_conversion:
-            transform_ops = [transforms.Grayscale(), transforms.Normalize(
+            transform_ops = [transforms.Grayscale(), *transform_ops, transforms.Normalize(
                 mean=[0.462],
                 std=[0.270]
-            ), *transform_ops]
+            )]
         else:
             transform_ops = [*transform_ops, transforms.Normalize(
                 mean=[0.470, 0.460, 0.455],
