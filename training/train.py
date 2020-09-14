@@ -33,8 +33,8 @@ def perform_training(
 
     early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
         monitor='val_loss',
-        min_delta=0.0,
-        patience=10,
+        min_delta=1e-2,
+        patience=5,
         mode='min'
     )
 
