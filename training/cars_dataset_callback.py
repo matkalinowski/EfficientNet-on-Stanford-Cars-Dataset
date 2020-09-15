@@ -1,6 +1,7 @@
 from time import time
 
 import torch
+from neptune.exceptions import NoChannelValue
 from pytorch_lightning import Callback
 from sklearn.metrics import classification_report
 from torch.utils.data import DataLoader
@@ -108,6 +109,8 @@ def log_dictionary(dictionary, trainer):
             trainer.logger.experiment.log_metric(k, v)
         except TypeError:
             trainer.logger.experiment.log_text(k, str(v))
+        except NoChannelValue:
+            trainer.logger.experiment.log_text(k, 'None')
 
 
 class StanfordCarsDatasetCallback(Callback):

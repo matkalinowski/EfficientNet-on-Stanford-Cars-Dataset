@@ -56,16 +56,16 @@ def perform_training(
 
 if __name__ == '__main__':
     perform_training(trial_info=TrialInfo(model_info=EfficientNets.b0.value,
-                                          load_weights=False,
+                                          load_weights=True,
                                           advprop=False,
                                           freeze_pretrained_weights=False,
                                           epochs=100,
                                           batch_size=32,
                                           initial_lr=1e-3,
                                           optimizer=torch.optim.AdamW,
-                                          optimizer_settings=dict(weight_decay=0.2),
+                                          optimizer_settings=dict(),
                                           scheduler_settings=dict(patience=3),
-                                          custom_dropout_rate=0.2,
+                                          custom_dropout_rate=None,
                                           num_classes=196,
-                                          in_channels=1,
+                                          in_channels=3,
                                           ))

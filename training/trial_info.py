@@ -1,7 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 from uuid import UUID, uuid1
 
 import pandas as pd
@@ -26,7 +26,7 @@ class TrialInfo:
     optimizer: Optimizer
     optimizer_settings: Dict
     scheduler_settings: Dict
-    custom_dropout_rate: float
+    custom_dropout_rate: Optional[float]
 
     num_classes: int
     in_channels: int
