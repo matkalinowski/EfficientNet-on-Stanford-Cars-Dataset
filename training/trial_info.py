@@ -26,6 +26,7 @@ class TrialInfo:
     optimizer: Optimizer
     optimizer_settings: Dict
     scheduler_settings: Dict
+    custom_dropout_rate: float
 
     num_classes: int
     in_channels: int

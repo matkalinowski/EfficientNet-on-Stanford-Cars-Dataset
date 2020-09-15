@@ -62,9 +62,10 @@ if __name__ == '__main__':
                                           epochs=100,
                                           batch_size=32,
                                           initial_lr=1e-3,
-                                          optimizer=torch.optim.Adam,
-                                          optimizer_settings=dict(),
+                                          optimizer=torch.optim.AdamW,
+                                          optimizer_settings=dict(weight_decay=0.2),
                                           scheduler_settings=dict(patience=3),
+                                          custom_dropout_rate=0.2,
                                           num_classes=196,
                                           in_channels=1,
                                           ))

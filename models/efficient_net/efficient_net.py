@@ -35,7 +35,10 @@ class EfficientNet(StanfordCarsDatasetLightningModule):
                                    eps=global_params.batch_norm_epsilon)
 
         self._avg_pooling = nn.AdaptiveAvgPool2d(1)
-        self._dropout = nn.Dropout(global_params.dropout_rate)
+        if trial_info.custom_dropout_rate is not None:
+            self._dropout = nn.Dropout(trial_info.custom_dropout_rate)
+        else:
+            self._dropout = nn.Dropout(global_params.dropout_rate)
         self._classification = nn.Linear(out_channels, trial_info.num_classes)
         self._swish = Swish()
 
