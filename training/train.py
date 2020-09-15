@@ -1,3 +1,6 @@
+import sys
+sys.path.append('.')
+
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateLogger
