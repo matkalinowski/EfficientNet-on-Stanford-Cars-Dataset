@@ -1,4 +1,6 @@
 import sys
+from typing import Optional, List
+
 sys.path.append('.')
 
 import pytorch_lightning as pl
@@ -20,6 +22,7 @@ def perform_training(
         trial_info: TrialInfo,
         training_data=None,
         model=None,
+        logger_tags: Optional[List[str]] = None
 
 ):
     if model is None:
@@ -31,14 +34,13 @@ def perform_training(
 
     neptune_logger = NeptuneLogger(
         project_name="matkalinowski/sandbox",
-        experiment_name=f"{str(trial_info)}"
+        experiment_name=f"{str(trial_info)}",
+        tags=logger_tags
     )
 
     early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
-        monitor='val_acc',
-        min_delta=5e-3,
-        patience=5,
-        mode='min'
+        min_delta=1e-2,
+        patience=5
     )
 
     checkpoint_callback = ModelCheckpoint(filepath=str(trial_info.output_folder))
@@ -62,10 +64,10 @@ if __name__ == '__main__':
                                           load_weights=True,
                                           advprop=False,
                                           freeze_pretrained_weights=False,
-                                          epochs=100,
+                                          epochs=150,
                                           batch_size=32,
                                           initial_lr=1e-3,
-                                          optimizer=torch.optim.AdamW,
+                                          optimizer=torch.optim.SGD,
                                           optimizer_settings=dict(),
                                           scheduler_settings=dict(patience=3),
                                           custom_dropout_rate=None,

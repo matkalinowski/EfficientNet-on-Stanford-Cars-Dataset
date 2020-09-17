@@ -33,7 +33,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         loss = self.loss(pred, y)
         acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
 
-        result = pl.EvalResult(checkpoint_on=loss)
+        result = pl.EvalResult(checkpoint_on=loss, early_stop_on=loss)
         result.log_dict({'val_loss': loss, 'val_acc': acc})
         return result
 
