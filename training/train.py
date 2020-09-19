@@ -40,8 +40,8 @@ def perform_training(
     )
 
     early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
-        min_delta=5e-3,
-        patience=4
+        min_delta=4e-3,
+        patience=7
     )
 
     checkpoint_callback = ModelCheckpoint(filepath=str(trial_info.output_folder))
