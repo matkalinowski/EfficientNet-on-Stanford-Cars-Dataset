@@ -38,7 +38,8 @@ class StanfordCarsDataset(Dataset):
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomAffine(25, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=8),
                 transforms.ToTensor(),
-                transforms.RandomErasing(p=0.5, scale=(0.02, 0.25)),
+                transforms.ColorJitter(),
+                # transforms.RandomErasing(p=0.5, scale=(0.02, 0.25)),
             ]
         else:
             transform_ops = [

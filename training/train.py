@@ -22,7 +22,8 @@ def perform_training(
         trial_info: TrialInfo,
         training_data=None,
         model=None,
-        logger_tags: Optional[List[str]] = None
+        logger_tags: Optional[List[str]] = None,
+
 
 ):
     if model is None:
@@ -39,8 +40,8 @@ def perform_training(
     )
 
     early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
-        min_delta=1e-2,
-        patience=5
+        min_delta=5e-3,
+        patience=4
     )
 
     checkpoint_callback = ModelCheckpoint(filepath=str(trial_info.output_folder))
@@ -60,17 +61,19 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    perform_training(trial_info=TrialInfo(model_info=EfficientNets.b0.value,
-                                          load_weights=True,
-                                          advprop=False,
-                                          freeze_pretrained_weights=False,
-                                          epochs=150,
-                                          batch_size=32,
-                                          initial_lr=1e-3,
-                                          optimizer=torch.optim.SGD,
-                                          optimizer_settings=dict(),
-                                          scheduler_settings=dict(patience=3),
-                                          custom_dropout_rate=None,
-                                          num_classes=196,
-                                          in_channels=3,
-                                          ))
+    trial_info = TrialInfo(model_info=EfficientNets.b0.value,
+                           load_weights=True,
+                           advprop=False,
+                           freeze_pretrained_weights=False,
+                           epochs=150,
+                           batch_size=48,
+                           initial_lr=1e-2,
+                           optimizer=torch.optim.AdamW,
+                           optimizer_settings=dict(),
+                           scheduler_settings=dict(patience=3),
+                           custom_dropout_rate=None,
+                           num_classes=196,
+                           in_channels=3,
+                           )
+    perform_training(trial_info)
+
