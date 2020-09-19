@@ -85,6 +85,6 @@ if __name__ == '__main__':
                                            scheduler_settings=dict(patience=3),
                                            num_classes=196,
                                            )
-                    perform_training(trial_info)
+                    perform_training(trial_info, logger_tags=['grid_search'])
 
 
