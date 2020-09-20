@@ -70,7 +70,7 @@ if __name__ == '__main__':
             for weight_decay in optimizer_settings_weight_decay_grid:
                 for dropout_rate in custom_dropout_rate_grid:
                     if in_channels == 3 and load_weights is True and weight_decay in [1e-3, 1e-2, 1e-1]:
-                        pass
+                        continue
                     trial_info = TrialInfo(in_channels=in_channels,
                                            load_weights=load_weights,
                                            optimizer_settings=dict(weight_decay=weight_decay),
