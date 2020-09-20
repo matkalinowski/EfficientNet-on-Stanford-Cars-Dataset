@@ -139,9 +139,12 @@ class StanfordCarsDatasetCallback(Callback):
         _calculate_store_metrics(trainer, trainer.datamodule.train_data)
         _calculate_store_metrics(trainer, trainer.datamodule.val_data)
         if trainer.logger is not None:
-            log.info('Uploading model to logger.')
-            trainer.logger.experiment.log_artifact(str(self.trial_info.output_folder))
-            trainer.logger.experiment.stop()
+            try:
+                log.info('Uploading model to logger.')
+                trainer.logger.experiment.log_artifact(str(self.trial_info.output_folder))
+                trainer.logger.experiment.stop()
+            except:
+                log.error('Uploading model failed.')
 
     def on_epoch_start(self, trainer, pl_module):
         """Called when the epoch begins."""

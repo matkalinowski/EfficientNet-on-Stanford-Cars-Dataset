@@ -64,7 +64,7 @@ if __name__ == '__main__':
     in_channels_grid = [3, 1]
     load_weights_grid = [True, False]
     optimizer_settings_weight_decay_grid = [1e-3, 1e-2, 1e-1, 2e-1]
-    custom_dropout_rate_grid = [0.1, 0., 0.3]
+    custom_dropout_rate_grid = [0, 0.1, 0.2, 0.3]
 
     for in_channels in in_channels_grid:
         for load_weights in load_weights_grid:
