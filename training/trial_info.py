@@ -31,11 +31,8 @@ class TrialInfo:
     num_classes: int
     in_channels: int
 
-    # auto-generated
-    output_folder: Path = None
-    trial_id: UUID = uuid1()
-
     def __post_init__(self):
+        self.trial_id = uuid1()
         date_folder = create_date_folder(get_project_structure()['training_trials'])
 
         self.output_folder = date_folder / str(self.trial_id)
