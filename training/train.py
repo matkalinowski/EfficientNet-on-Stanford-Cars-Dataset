@@ -40,7 +40,7 @@ def perform_training(
 
     early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
         min_delta=1e-3,
-        patience=7
+        patience=10
     )
 
     checkpoint_callback = ModelCheckpoint(filepath=str(trial_info.output_folder))
@@ -60,9 +60,9 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    in_channels_grid = [3, 1]
-    load_weights_grid = [True, False]
-    optimizer_settings_weight_decay_grid = [1e-3, 1e-2, 1e-1, 2e-1]
+    in_channels_grid = [3]
+    load_weights_grid = [False]
+    optimizer_settings_weight_decay_grid = [0.1, 0.2, .3]
     custom_dropout_rate_grid = [0, 0.1, 0.2, 0.3]
 
     for in_channels in in_channels_grid:
@@ -72,7 +72,8 @@ if __name__ == '__main__':
                     if (in_channels == 3 and load_weights is True
                         and weight_decay in [1e-3, 1e-2, 1e-1, 2e-1]
                         and dropout_rate in [0, 0.1, 0.2, 0.3]) or (
-                            in_channels == 3 and load_weights is False and weight_decay == 0.001 and dropout_rate == 0):
+                            in_channels == 3 and load_weights is False
+                            and weight_decay in [0.001, 0.01, 0.1] and dropout_rate in [0, 0.1, 0.2, 0.3]):
                         continue
                     trial_info = TrialInfo(in_channels=in_channels,
                                            load_weights=load_weights,
@@ -86,11 +87,11 @@ if __name__ == '__main__':
                                            epochs=150,
                                            batch_size=96,
                                            initial_lr=1e-3,
-                                           scheduler_settings=dict(patience=3),
+                                           scheduler_settings=dict(patience=7),
                                            num_classes=196,
                                            )
                     try:
-                        perform_training(trial_info, logger_tags=['grid_search'])
+                        perform_training(trial_info, logger_tags=['grid_search_local'])
                     except Exception as e:
                         log.error('Error in trial.')
                         log.error(e)
