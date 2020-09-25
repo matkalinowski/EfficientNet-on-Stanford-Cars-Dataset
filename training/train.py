@@ -83,6 +83,6 @@ if __name__ == '__main__':
                                        num_classes=196,
                                        )
                 try:
-                    perform_training(trial_info, logger_tags=['grid_search_local'])
+                    perform_training(trial_info, logger_tags=['grid_search_more_regularization'])
                 except Exception as e:
                     log.exception('Error in trial.')
