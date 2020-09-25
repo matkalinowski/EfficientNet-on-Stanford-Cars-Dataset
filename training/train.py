@@ -60,38 +60,29 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    in_channels_grid = [3]
+    in_channels_grid = [3, 1]
     load_weights_grid = [False]
-    optimizer_settings_weight_decay_grid = [0.1, 0.2, .3]
-    custom_dropout_rate_grid = [0, 0.1, 0.2, 0.3]
+    custom_dropout_rate_grid = [.3, .4, .5, .6]
 
     for in_channels in in_channels_grid:
         for load_weights in load_weights_grid:
-            for weight_decay in optimizer_settings_weight_decay_grid:
-                for dropout_rate in custom_dropout_rate_grid:
-                    if (in_channels == 3 and load_weights is True
-                        and weight_decay in [1e-3, 1e-2, 1e-1, 2e-1]
-                        and dropout_rate in [0, 0.1, 0.2, 0.3]) or (
-                            in_channels == 3 and load_weights is False
-                            and weight_decay in [0.001, 0.01, 0.1] and dropout_rate in [0, 0.1, 0.2, 0.3]):
-                        continue
-                    trial_info = TrialInfo(in_channels=in_channels,
-                                           load_weights=load_weights,
-                                           optimizer_settings=dict(weight_decay=weight_decay),
-                                           custom_dropout_rate=dropout_rate,
-                                           # remaining values stay the same:
-                                           optimizer=torch.optim.AdamW,
-                                           model_info=EfficientNets.b0.value,
-                                           advprop=False,
-                                           freeze_pretrained_weights=False,
-                                           epochs=150,
-                                           batch_size=96,
-                                           initial_lr=1e-3,
-                                           scheduler_settings=dict(patience=7),
-                                           num_classes=196,
-                                           )
-                    try:
-                        perform_training(trial_info, logger_tags=['grid_search_local'])
-                    except Exception as e:
-                        log.error('Error in trial.')
-                        log.error(e)
+            for dropout_rate in custom_dropout_rate_grid:
+                trial_info = TrialInfo(in_channels=in_channels,
+                                       load_weights=load_weights,
+                                       optimizer_settings=dict(weight_decay=1e-2),
+                                       custom_dropout_rate=dropout_rate,
+                                       # remaining values stay the same:
+                                       optimizer=torch.optim.AdamW,
+                                       model_info=EfficientNets.b0.value,
+                                       advprop=False,
+                                       freeze_pretrained_weights=False,
+                                       epochs=150,
+                                       batch_size=96,
+                                       initial_lr=1e-3,
+                                       scheduler_settings=dict(patience=7),
+                                       num_classes=196,
+                                       )
+                try:
+                    perform_training(trial_info, logger_tags=['grid_search_local'])
+                except Exception as e:
+                    log.exception('Error in trial.')
