@@ -60,17 +60,15 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    in_channels_grid = [3]
+    in_channels_grid = [1]
     load_weights_grid = [False]
-    optimizer_settings_weight_decay_grid = [.3, .4, .5]
-    custom_dropout_rate_grid = [.2, .4, .5, .6]
+    optimizer_settings_weight_decay_grid = [3e-2, 5e-2]
+    custom_dropout_rate_grid = [0, .3, .4, .5]
 
     for in_channels in in_channels_grid:
         for load_weights in load_weights_grid:
             for weight_decay in optimizer_settings_weight_decay_grid:
                 for dropout_rate in custom_dropout_rate_grid:
-                    if weight_decay == .3 and dropout_rate == .2:
-                        continue
                     trial_info = TrialInfo(in_channels=in_channels,
                                            load_weights=load_weights,
                                            optimizer_settings=dict(weight_decay=weight_decay),
