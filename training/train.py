@@ -40,7 +40,7 @@ def perform_training(
 
     early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
         min_delta=1e-3,
-        patience=10
+        patience=12
     )
 
     checkpoint_callback = ModelCheckpoint(filepath=str(trial_info.output_folder))
@@ -79,7 +79,7 @@ if __name__ == '__main__':
                                        epochs=150,
                                        batch_size=96,
                                        initial_lr=1e-3,
-                                       scheduler_settings=dict(patience=7),
+                                       scheduler_settings=dict(patience=10),
                                        num_classes=196,
                                        )
                 try:
