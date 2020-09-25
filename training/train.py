@@ -87,5 +87,4 @@ if __name__ == '__main__':
                     try:
                         perform_training(trial_info, logger_tags=['grid_search_single_channel'])
                     except Exception as e:
-                        log.error('Error in trial.')
-                        log.error(e)
+                        log.exception('Error in trial.')
