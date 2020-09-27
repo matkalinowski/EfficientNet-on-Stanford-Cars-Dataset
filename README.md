@@ -1,11 +1,11 @@
-This project is thesis code for my postgraduate studies- Deep neural networks, applications in digital media.
+adThis project is thesis code for my postgraduate studies- Deep neural networks, applications in digital media.
 
-Project implements EfficientNet and it's training on Stanford Cars dataset with possibility of extension.
-You can find other networks comparision [here](https://paperswithcode.com/sota/fine-grained-image-classification-on-stanford)
+Project implements EfficientNet and it's training on Stanford Cars dataset with possibility of extension to both other models and datasets.
 
-You can find original implementation in tensorflow [here](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet).
+- You can find other networks comparison [here](https://paperswithcode.com/sota/fine-grained-image-classification-on-stanford)
+- You can find original implementation in tensorflow [here](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet).
+- Relevant experiments, that I performed can be found on [this neptune dashboard](https://ui.neptune.ai/matkalinowski/sandbox/experiments?viewId=47196815-c2a8-4a2b-bb7c-cf3d146805ac).
 
-Relevant experiments can be found on [this neptune dashboard](https://ui.neptune.ai/matkalinowski/sandbox/experiments?viewId=47196815-c2a8-4a2b-bb7c-cf3d146805ac).
 
 ### Howto
 
@@ -45,7 +45,7 @@ EfficientNets achieve state-of-the-art accuracy on ImageNet with an order of mag
 * Compared with the widely used [ResNet-50](https://arxiv.org/abs/1512.03385), our EfficientNet-B4 improves the top-1 accuracy from 76.3% of ResNet-50 to 82.6% (+6.3%), under similar FLOPS constraint.
 
 
-Details about the models are below: 
+Details about the supported models are below: 
 
 |    *Name*         |*# Params*|*Top-1 Acc.*|*Pretrained?*|
 |:-----------------:|:--------:|:----------:|:-----------:|
@@ -60,3 +60,4 @@ Details about the models are below:
 
 ### Extras
 - [lukemelas implementation](https://github.com/lukemelas/EfficientNet-PyTorch), this repository serves also as a source of pretrained network parameters.
+- My colleague implementation of other architectures and his results on the same dataset can be found [here](https://github.com/pchaberski/cars). Please note great approach to network configuration. 
