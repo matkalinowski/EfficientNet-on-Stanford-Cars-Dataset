@@ -45,6 +45,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
             'scheduler': ReduceLROnPlateau(optimizer, verbose=True, **self.trial_info.scheduler_settings),
             'reduce_on_plateau': True,
             # val_checkpoint_on is val_loss passed in as checkpoint_on
-            'monitor': 'val_checkpoint_on'
+            'monitor': 'val_checkpoint_on',
+            'name': 'lr'
         }
         return [optimizer], [scheduler]

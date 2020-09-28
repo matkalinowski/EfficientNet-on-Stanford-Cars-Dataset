@@ -60,31 +60,18 @@ def perform_training(
 
 
 if __name__ == '__main__':
-    in_channels_grid = [1]
-    load_weights_grid = [False]
-    optimizer_settings_weight_decay_grid = [3e-2, 5e-2]
-    custom_dropout_rate_grid = [0, .3, .4, .5]
-
-    for in_channels in in_channels_grid:
-        for load_weights in load_weights_grid:
-            for weight_decay in optimizer_settings_weight_decay_grid:
-                for dropout_rate in custom_dropout_rate_grid:
-                    trial_info = TrialInfo(in_channels=in_channels,
-                                           load_weights=load_weights,
-                                           optimizer_settings=dict(weight_decay=weight_decay),
-                                           custom_dropout_rate=dropout_rate,
-                                           # remaining values stay the same:
-                                           optimizer=torch.optim.AdamW,
-                                           model_info=EfficientNets.b0.value,
-                                           advprop=False,
-                                           freeze_pretrained_weights=False,
-                                           epochs=150,
-                                           batch_size=32,
-                                           initial_lr=1e-3,
-                                           scheduler_settings=dict(patience=7),
-                                           num_classes=196,
-                                           )
-                    try:
-                        perform_training(trial_info, logger_tags=['grid_search_single_channel'])
-                    except Exception as e:
-                        log.exception('Error in trial.')
+    trial_info = TrialInfo(model_info=EfficientNets.b0.value,
+                           load_weights=True,
+                           advprop=False,
+                           freeze_pretrained_weights=False,
+                           epochs=150,
+                           batch_size=32,
+                           initial_lr=1e-3,
+                           optimizer=torch.optim.AdamW,
+                           optimizer_settings=dict(),
+                           scheduler_settings=dict(patience=3),
+                           custom_dropout_rate=None,
+                           num_classes=196,
+                           in_channels=3,
+                           )
+    perform_training(trial_info)
