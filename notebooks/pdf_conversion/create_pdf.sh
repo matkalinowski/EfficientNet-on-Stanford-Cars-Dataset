@@ -4,8 +4,7 @@ cd ..
 . bib2md.sh
 cat documentation.md 5_references.md >> pdf_conversion/merged.md
 sed -e s/5_references.md//g -i pdf_conversion/merged.md
-pandoc --toc -H pdf_conversion/main_options.sty -V geometry:margin=1.2in -V fontsize=12pt --top-level-division=chapter pdf_conversion/merged.md -o pdf_conversion/contents.pdf
-
+pandoc --toc --pdf-engine=xelatex -H pdf_conversion/main_options.sty -V geometry:margin=1.2in -V fontsize=12pt --top-level-division=chapter pdf_conversion/merged.md -o pdf_conversion/contents.pdf
 rm pdf_conversion/merged.md
 
 cd pdf_conversion

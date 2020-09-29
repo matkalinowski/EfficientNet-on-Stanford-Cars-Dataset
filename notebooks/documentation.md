@@ -153,13 +153,13 @@ Specific requirements with their versions can be found here: https://github.com/
 
 When in comes to **Neptune** this tool needs some work, but still is a very good tool for experiments tracking. Every experiment has its artifacts- model and predictions on training and validation dataset saved in artifacts page.
 
+![Custom Neptune dashboard example.](images/image-20200928010709056.png)
+
 | Pros                                                        | Cons                                                         |
 | ----------------------------------------------------------- | ------------------------------------------------------------ |
 | Enables sharing specific view of experimentation dashboard. | Does not provide way to customize colors and default ones are not the best. |
 | It is free up to 100GB of space.                            | No easy way to download results from UI perspective.         |
 | Provides API to download experiments results.               | It crashes once a while, it results with error in the experiment which can be very frustrating. |
-
-![Custom Neptune dashboard example.](images/image-20200928010709056.png)
 
 ![Example Neptune custom charts.](images/image-20200928010407721.png)
 
@@ -530,7 +530,9 @@ scheduler_settings__factor:nan
 
 ### RGB and grayscale comparision
 
-Best models both in grayscale as well as in RGB scale achieve similar loss and accuracy results. Image TODO shows that they even trigger learning rate decrease in almost the same moment. Grayscale network holds validation loss closer to the training one at the beginning of the training. Pretrained weights helped with obtaining better results and loss decay in this type of training is more smooth.
+Best models both in grayscale as well as in RGB scale achieve similar loss and accuracy results. Images below shows that they even trigger learning rate decrease in almost the same moment. Grayscale network holds validation loss closer to the training one at the beginning of the training.
+
+Pretrained weights helped with obtaining better results and loss decay in this type of training is more smooth.
 
 ![Comparison of best RGB and grayscale experiment. SAN-437, on the right side is grayscale.](images/image-20200928233308922.png)
 
@@ -538,7 +540,7 @@ Best models both in grayscale as well as in RGB scale achieve similar loss and a
 
 ### Predictions analysis
 
-Image TODO shows predictions for every analyzed model. X-axis shows different models and y-axis shows index of validation dataset example. Black color means that model made a mistake. There are visible grids with different settings. First rows shows pretrained networks and latter ones show increasing of regularization and decreasing performance. Image contains horizontal lines which indicate that there are some hard examples in the dataset- multiple different models make mistake on theirs prediction.
+Last image shows predictions for every analyzed model. X-axis shows different models and y-axis shows index of validation dataset example. Black color means that model made a mistake. There are visible grids with different settings. First rows shows pretrained networks and latter ones show increasing of regularization and decreasing performance. Image contains horizontal lines which indicate that there are some hard examples in the dataset- multiple different models make mistake on theirs prediction.
 
 ![All models prediction.](images/image-20200928230845204.png)
 
