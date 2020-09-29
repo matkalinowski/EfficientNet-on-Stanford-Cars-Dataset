@@ -25,7 +25,7 @@ EfficientNet architecture was first proposed in late may 2019 and gained a lot o
 where $\alpha, \beta, \gamma$ are constant coefficients determined by a grid search on the baseline model. Authors state that: "The compound scaling method makes sense because
 if the input image is bigger, then the network needs more layers to increase the receptive field and more channels to capture more fine-grained patterns on the bigger image."
 
-## Baseline network
+## 2.1 Baseline network
 
 Effectiveness of this approach relies heavily on the baseline network. Authors have used neural architecture search [4] that achieves even better efficiency than hand-crafted mobile ConvNets by extensively tuning the network width, depth, convolution kernel types and sizes. 
 
@@ -45,7 +45,7 @@ Diagonally hatched layers do not use non-linearities. They use thickness of each
 
 Furthermore authors of MobileNetV2 [5] article say that: "The motivation for inserting shortcuts is similar to that of classical residual connections: we want to improve the ability of a gradient to propagate across multiplier layers. However, the inverted design is considerably more memory efficient (see Section 5 for details), as well as works slightly better in our experiments."
 
-## Network scaling
+## 2.2 Network scaling
 
 Authors have studied effect of scaling the network using three different dimensions:
 
@@ -59,7 +59,7 @@ When looking at those dimensions one can notice that bigger input size can help 
 
 *Compound scaling will be explained later.
 
-## Dimensions details
+## 2.3 Dimensions details
 
 - **Width (w)** is commonly used in small models. Intuition behind this scaling is that wider networks tend to be able to capture more fine-grained features and are easier to train. But when network is lacking on depth it can have problems in capturing high level features. Figure 5 shows that width scaling (on the left) quickly comes to a point when further width increasing gives small improvement.
 - **Depth (d)** is most common in ConvNet scaling and one of first used. It can capture more complex features and help with generalization. Deeper networks are hard to train due to vanishing gradient problem but it has been proved that skip connections, batch normalization can help with this. There were some ideas to create classifiers not only on the end of the network but also in the middle layers to make sure that those middle layers create usable features. Another problem of this approach that has been spotted when comparing results of ResNet was that accuracy of very deep network diminishes- ResNet-1000 has very similar accuracy to ResNet-101.
@@ -99,7 +99,7 @@ Network Scaling coefficients:
 | EfficientNets.b6 | 1.8               | 2.6               | 528.0      |
 | EfficientNets.b7 | 2.0               | 3.1               | 600.0      |
 
-## Performance
+## 2.4 Performance
 
 EfficientNet performance was calculated on famous ImageNet image database, that can be found here: http://www.image-net.org/. Results in the moment of article publishing was beating every, even more advanced networks in terms of both accuracy and calculations budget.
 
@@ -109,7 +109,7 @@ Below are the exact performance results.
 
 ![EfficientNet performance results.](images/image-20200927000530436.png)
 
-## Transfer learning possibilities
+## 2.5 Transfer learning possibilities
 
 Authors have also tested performance of theirs architecture on other datasets and the results are below:
 
@@ -145,9 +145,11 @@ Below are main tools were used to complete this project:
 - Neptune as a experiment tracking tool.
 - Git as a version control tool.
 
-Specific requirements with their versions can be found here: https://github.com/matkalinowski/dnn/blob/master/requirements.txt
+Specific requirements with their versions can be found here:
 
-## Tools summary
+https://github.com/matkalinowski/dnn/blob/master/requirements.txt
+
+## 4.1Tools summary
 
 **Pytorch** is a great library for deep learning models development and it is very easy to get started as well as prototype. It enables easy models debugging and clean API. **Pytorch-lightning** introduces modules that help organize code and I also definitely recommend it.
 
@@ -155,15 +157,21 @@ When in comes to **Neptune** this tool needs some work, but still is a very good
 
 ![Custom Neptune dashboard example.](images/image-20200928010709056.png)
 
-| Pros                                                        | Cons                                                         |
-| ----------------------------------------------------------- | ------------------------------------------------------------ |
-| Enables sharing specific view of experimentation dashboard. | Does not provide way to customize colors and default ones are not the best. |
-| It is free up to 100GB of space.                            | No easy way to download results from UI perspective.         |
-| Provides API to download experiments results.               | It crashes once a while, it results with error in the experiment which can be very frustrating. |
-
 ![Example Neptune custom charts.](images/image-20200928010407721.png)
 
 ![Neptune saved artifacts example.](images/image-20200928203751309.png)
+
+Neptune pros:
+
+- Enables sharing specific view of experimentation dashboard and easy experiments comparison.
+- It is free up to 100GB of space.  
+- Provides API to download experiments results.
+
+Neptune cons:
+
+- Does not provide way to customize colors and default ones are not the best.
+- No easy way to download results from UI perspective.  
+- It crashes once a while, it results with error in the experiment which can be very frustrating.
 
 # 5. Experiments description
 
@@ -177,11 +185,11 @@ Important notes:
 - I changed last layer of the network to take into account number of classes in the dataset.
 - I focused mainly on b0 network due to computational resources constraints.
 
-## Working environment
+## 5.1 Working environment
 
 I used 3 environments: colab, local, azure cloud, but the results that I will be comparing will be from later two. I used requirements file to install required packages on every environment. Every training was run using perform_training function from train.py file in training package, this helped me to easily track every run settings because the training file is uploaded to Neptune with git hash.
 
-## Loss function
+## 5.2 Loss function
 
 Loss function I used to all described experiments is LabelSmoothingCrossEntropy. This function is very useful when working with multiclass classification problems like the one presented in the Stanford Cars dataset. Label smoothing changes the target vector by a small amount `e`. **Thus, instead of asking our model to predict** `**1**` **for the right class, we ask it to predict** `**1-e**` **for the correct class and** `**e**` **for all the others.** So, the cross-entropy loss function with label smoothing is transformed into the formula below.[9]
 
@@ -212,7 +220,7 @@ class LabelSmoothingCrossEntropy(nn.Module):
         return linear_combination(loss / n, nll, self.epsilon)
 ```
 
-## Data preprocessing
+## 5.3 Data preprocessing
 
 I have used transforms from the torchvision library, here is a list of transformations applied to training dataset:
 
@@ -251,43 +259,27 @@ transforms.Grayscale(), *transform_ops, transforms.Normalize(
 )
 ```
 
-I will describe how each transformation works below.
+![Image transformations. Top left- normal image, top right-RandomHorizontalFlip applied. Bottom left- RandomAffine applied, bottom right- ColorJitter and Normalization applied.](images/image-20200929181917509.png)
 
-### Resize
+- **Resize**
+  - Resize transformation is needed because every EfficientNet architecture has its own resolution needed to work well. For B0 version it is 224x224.
 
-Resize transformation is needed because every EfficientNet architecture has its own resolution needed to work well. For B0 version it is 224x224.
+- **RandomHorizontalFlip**
+  - This transform performs horizontal flip of the image, default probability of flip is 0.5.
 
-### RandomHorizontalFlip
+- **RandomAffine**
+  - Is a transformation to keep network center invariant. It will rotate and rescale the image. 
 
-This transform performs horizontal flip of the image, default probability of flip is 0.5.
+- **ColorJitter**
+  - It will randomly change the brightness, contrast and saturation of an image.
+- **Normalization**
+  - It will normalize the image using values calculated on the training dataset by substracting the mean and dividing by standard deviation.
 
-![Standard image.](images/image-20200927235303653.png)
+## 5.4 Training ideas
 
-![Horizontal flip example.](images/image-20200927235337935.png)
+At the beginning of the training I was trying to maximize the accuracy on validation dataset and it was a pretty easy task when there is a pretrained network around. I managed to get 91.4% accuracy on validation dataset using b0 network, higher than this reported in original paper (look experiment SAN-319) but couldn't reproduce this score later (look experiment SAN-474) and got only 90.7%. Results presented below are from a grid search performed on EfficientNet-B0 network.
 
-### RandomAffine
-
-Is a transformation to keep network center invariant. It will rotate and rescale the image. 
-
-![Random affine example.](images/image-20200927235526273.png)
-
-### ColorJitter
-
-It will randomly change the brightness, contrast and saturation of an image.
-
-![Color jitter example.](images/image-20200927235645459.png)
-
-### Normalization
-
-It will normalize the image using values calculated on the training dataset by substracting the mean and dividing by standard deviation.
-
-![Normalization example.](images/image-20200928000548134.png)
-
-## Training ideas
-
-At the beginning of the training I was trying to maximize the accuracy on validation dataset and it was a pretty easy task when there is a pretrained network around. I managed to get 91.4% accuracy on validation dataset using b0 network, higher than this reported in original paper (look experiment SAN-319) but couldn't reproduce this score later (look experiment SAN-474) and got only 90.7%.
-
-Then I tried to maximize this result using 1 or 3 channels and trying to regularize the network more using weight_decay of AdamW optimizer, but those results were still the best I got.
+Then I tried to maximize this result using 1 or 3 channels and trying to regularize the network more using weight_decay of AdamW optimizer, but those results were still the best I got. 
 
 This network had:
 
@@ -298,7 +290,7 @@ Concurrently I ran experiments trying to achieve similar results without using p
 
 Because in every case training loss was diverging from the validation one I tried to increase the regularization- weight decay in AdamW and dropout rate in the network itself.
 
-## Training script
+## 5.5 Training script
 
 ```
 import sys
@@ -422,7 +414,7 @@ class TrialInfo:
 
 ```
 
-## Learning rate scheduling
+## 5.6 Learning rate scheduling
 
 Learing rate scheduling is a useful tool and it helped me gaining better results. It is visible that decreasing learning rate improves both loss and accuracy.
 
@@ -432,17 +424,19 @@ I used ReduceLROnPlateau scheduler with
 - Patience, so the value responsible for counting how many epochs have passed without improvement, value was changing, I picked two values based on previous experiments 3 and 7.
 - Threshold- if difference between previous loss was higher than this value patience value is zeroed. Set to 1e-3.
 
-![Learning rate scheduling in experiment SAN-459.](images/image-20200928205809156.png)
+<img src="images/image-20200928205809156.png" alt="Learning rate scheduling in experiment SAN-459." style="zoom:80%;" />
 
 # 6. Experiments results
 
-## Pretrained network results
+## 6.1 Pretrained network results
 
 Pretrained networks gave the best results, about 10 pp. higher than those trained from scratch. They achieve 80% accuracy before 10'th epoch which was very suprising. They work for wide range of hyperparameters and require only proper data augmentation to work on this level of accuracy.
 
 ![Best performing model with pretrained weights.](images/image-20200928205945742.png)
 
 ```
+# Pretrained network results
+
 max_val_acc:0.9031956791877748
 max_train_acc:0.9985294342041016
 optimizer:<class 'torch.optim.adamw.AdamW'>
@@ -456,35 +450,39 @@ scheduler_settings__patience:3
 scheduler_settings__factor:nan
 ```
 
-### Regularization and its performance influence on models with pretrained weights
+### 6.1.1 Regularization and its performance influence on models with pretrained weights
 
 Changing values for dropout rate, weight decay had almost no influence on validation and training accuracy.
 
-![Dropout rate results on models with pretrained weights.](images/image-20200928210227886.png)
+![Dropout rate results on models with pretrained weights.](images/image-20200929184846553.png)
 
-![Weight decay results on models with pretrained weights.](images/image-20200928210314250.png)
+![Weight decay results on models with pretrained weights.](images/image-20200929184910047.png)
 
-### Regularization and its performance influence on all the experiments
+### 6.1.2 Regularization and its performance influence on all the experiments
 
 When it comes to regularization in perspective of all experiments we can see that dropout rate has effect on average accuracy. Higher the value equals lower overall performance. The same story goes with weight decay
 
-![Overall dropout rate results.](images/image-20200928204507739.png)
+![Overall dropout rate results.](images/image-20200929184214591.png)
 
-![Overall weight decay results.](images/image-20200928204639328.png)
+![Overall weight decay results.](images/image-20200929184233627.png)
 
 In this moment I have also tried freezing values of convolutional layers, but results showed that this approach won't be a good idea in this dataset probably because of large number of classes and high similarities between them.
 
 ![Freezing every layer but last (fully connected).](images/image-20200928175522534.png)
 
-## Training from scratch results
+## 6.2 Training from scratch results
 
-### RGB channel training results
+Due to obtaining satisfaction results in terms of accuracy
+
+### 6.2.1 RGB channel training results
 
 When training from scratch RGB training required more work and it was more time consuming without giving better results.
 
 ![Best performing model for RGB channel. Experiment SAN-448.](images/image-20200928212842668.png)
 
 ```
+# RGB channel training from scratch results
+
 max_val_acc:0.7897878289222717
 max_train_acc:0.9938725233078004
 optimizer:<class 'torch.optim.adamw.AdamW'>
@@ -498,19 +496,21 @@ scheduler_settings__patience:7
 scheduler_settings__factor:nan
 ```
 
-Dropout rat had significant influence on the accuracy. Weight decay with default value of 0.01 was not the best choice, values in range 0.2-0.3 yield better results.
+Dropout rate had significant influence on the accuracy. Weight decay with default value of 0.01 was not the best choice, values in range 0.2-0.3 yield better results.
 
-![Dropout rate in RGB channel trials when training from scratch.](images/image-20200928213056803.png)
+![Dropout rate in RGB channel trials when training from scratch.](images/image-20200929185047114.png)
 
-![Weight decay in RGB channels trials when training from scratch.](images/image-20200928213104306.png)
+![Weight decay in RGB channels trials when training from scratch.](images/image-20200929185101186.png)
 
-### Grayscale training results
+### 6.2.2 Grayscale training results
 
 Grayscale images showed better results and were easier to train, they worked for wide range dropout values as well as weight decay values. 
 
 ![Best performing model for single channel. Experiment SAN-437.](images/image-20200928212651165.png)
 
 ```
+# Grayscale channel training from scratch results
+
 max_val_acc:0.8126240372657776
 max_train_acc:0.9962009787559508
 optimizer:<class 'torch.optim.adamw.AdamW'>
@@ -524,11 +524,11 @@ scheduler_settings__patience:7
 scheduler_settings__factor:nan
 ```
 
-![Dropout rate in single channel trials when training from scratch.](images/image-20200928212401885.png)
+![Dropout rate in single channel trials when training from scratch.](images/image-20200929185346480.png)
 
-![Weight decay in single channel trials when training from scratch.](images/image-20200928212409466.png)
+![Weight decay in single channel trials when training from scratch.](images/image-20200929185357701.png)
 
-### RGB and grayscale comparision
+### 6.2.3 RGB and grayscale comparision
 
 Best models both in grayscale as well as in RGB scale achieve similar loss and accuracy results. Images below shows that they even trigger learning rate decrease in almost the same moment. Grayscale network holds validation loss closer to the training one at the beginning of the training.
 
@@ -538,13 +538,13 @@ Pretrained weights helped with obtaining better results and loss decay in this t
 
 ![Pretrained network vs network trained from scratch. Second one is on the left.](images/image-20200928234006276.png)
 
-### Predictions analysis
+## 7. Predictions analysis
 
-Last image shows predictions for every analyzed model. X-axis shows different models and y-axis shows index of validation dataset example. Black color means that model made a mistake. There are visible grids with different settings. First rows shows pretrained networks and latter ones show increasing of regularization and decreasing performance. Image contains horizontal lines which indicate that there are some hard examples in the dataset- multiple different models make mistake on theirs prediction.
+Last image shows predictions for every analyzed model. X-axis shows different models and y-axis shows index of validation dataset example. Black color means that model made a mistake. There are visible grids with different settings. First rows shows pretrained networks and latter ones show increasing of regularization and decreasing performance. Image contains horizontal lines which indicate that there are some hard examples in the dataset- multiple different models make mistake on theirs prediction. The hardest class was number 183, Suzuki SX4 Sedan 2012, it have 5 images that wasn't predicted well by any of my classifier.
 
 ![All models prediction.](images/image-20200928230845204.png)
 
-# 7.  Conclusions
+# 8.  Conclusions
 
 EfficientNet can be easily applied to transfer learning classification tasks and even the default configuration can be useful and yield good results. Results show almost state of the art accuracy on Stanford Cars dataset giving possibility to achieve even better results when using more complex version of EfficientNets. Implementation has its drawbacks because of generative approach to network creation. Compound scaling shows good results and to my current knowledge there are no other approaches that surpass this proposal.
 
