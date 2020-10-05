@@ -1,10 +1,11 @@
-adThis project is thesis code for my postgraduate studies- Deep neural networks, applications in digital media.
+This project is thesis code for my postgraduate studies- Deep neural networks, applications in digital media.
 
-Project implements EfficientNet and it's training on Stanford Cars dataset with possibility of extension to both other models and datasets.
+Project implements EfficientNet and it's training on Stanford Cars dataset with possibility of extension to both other models and datasets. My thesis is attached ad part of this readme.
 
 - You can find other networks comparison [here](https://paperswithcode.com/sota/fine-grained-image-classification-on-stanford)
 - You can find original implementation in tensorflow [here](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet).
 - Relevant experiments, that I performed can be found on [this neptune dashboard](https://ui.neptune.ai/matkalinowski/sandbox/experiments?viewId=47196815-c2a8-4a2b-bb7c-cf3d146805ac).
+- References are in the references.bib file. 
 
 
 ### Howto
@@ -19,6 +20,7 @@ This project uses virutalenv as a package manager. To install it automatically u
 - Go to the project root,
 - execute: setup.sh
     - if this does not work you can execute commands line by line
+
 # 1. Introduction
 
 Ever since first publications that used deep neural networks began to emerge their sizes grew. Along with the increase in their quality it was possible to build more advanced applications. One interesting branch of deep neural networks is computer vision on mobile devices. Mobile environment is more demanding in terms of computational budget. It caused a lot of research in areas like network scaling or weights shrinking. As it turned out network scaling is not an easy task and it should be approached systematically. Until the publication of the EfficientNet [2] article, there were no comprehensive solutions on this matter. 
@@ -559,4 +561,3 @@ EfficientNet can be easily applied to transfer learning classification tasks and
 # 9. Extras
 - [lukemelas implementation](https://github.com/lukemelas/EfficientNet-PyTorch), this repository serves also as a source of pretrained network parameters.
 - My colleague implementation of other architectures and his results on the same dataset can be found [here](https://github.com/pchaberski/cars). Please note great approach to network configuration.
-- References are in the references.bib file. 
