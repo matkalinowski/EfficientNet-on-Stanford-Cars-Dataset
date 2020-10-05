@@ -197,7 +197,7 @@ Loss function I used to all described experiments is LabelSmoothingCrossEntropy.
 
 Where ce(i) is standard cross-entropy loss, N is number of classes. This loss function have a regularization influence and intuitively restraints value for the correct class to be closer to values for other classes, thus preventing overfitting.
 
-```
+```python
 def reduce_loss(loss, reduction='mean'):
     return loss.mean() if reduction == 'mean' else loss.sum() if reduction == 'sum' else loss
 
@@ -224,7 +224,7 @@ class LabelSmoothingCrossEntropy(nn.Module):
 
 I have used transforms from the torchvision library, here is a list of transformations applied to training dataset:
 
-```
+```python
 transform_ops = [
     transforms.Resize((self.image_size, self.image_size)),
     transforms.RandomHorizontalFlip(),
@@ -232,27 +232,15 @@ transform_ops = [
     transforms.ToTensor(),
     transforms.ColorJitter(),
 ]
-```
-
-Here are transformations applied to validation set:
-
-```
+# Here are transformations applied to validation set:
 transform_ops = [
     transforms.Resize((self.image_size, self.image_size)),
     transforms.ToTensor(),
 ]
-
-```
-
-Additionally normalization was applied. Depending on set number of channels here is normalization for 3 channel input:
-
-```
+# Additionally normalization was applied. Depending on set number of channels here is normalization for 3 channel input:
 transforms.Normalize(mean=[0.470, 0.460, 0.455], std=[0.267, 0.266, 0.270])
-```
 
-and here are additional transformations for single channel, please note the grayscale transformation at the beginning:
-
-```
+# And here are additional transformations for single channel, please note the grayscale transformation at the beginning:
 transforms.Grayscale(), *transform_ops, transforms.Normalize(
     mean=[0.462],
     std=[0.270]
@@ -261,15 +249,14 @@ transforms.Grayscale(), *transform_ops, transforms.Normalize(
 
 ![Image transformations. Top left- normal image, top right-RandomHorizontalFlip applied. Bottom left- RandomAffine applied, bottom right- ColorJitter and Normalization applied.](images/image-20200929181917509.png)
 
+Transformations operations description:
+
 - **Resize**
   - Resize transformation is needed because every EfficientNet architecture has its own resolution needed to work well. For B0 version it is 224x224.
-
 - **RandomHorizontalFlip**
   - This transform performs horizontal flip of the image, default probability of flip is 0.5.
-
 - **RandomAffine**
   - Is a transformation to keep network center invariant. It will rotate and rescale the image. 
-
 - **ColorJitter**
   - It will randomly change the brightness, contrast and saturation of an image.
 - **Normalization**
@@ -292,7 +279,7 @@ Because in every case training loss was diverging from the validation one I trie
 
 ## 5.5 Training script
 
-```
+```python
 import sys
 from typing import Optional, List
 
@@ -385,7 +372,7 @@ Next main if statement is visible to be able to run this file from command line 
 
 Trial info is a dataclass containing every information that changes with given training iteration. it has post init method to create folder to stare output data and uuid to easily identify the results.
 
-```
+```python
 @dataclass
 class TrialInfo:
     model_info: EfficientNets
@@ -538,7 +525,7 @@ Pretrained weights helped with obtaining better results and loss decay in this t
 
 ![Pretrained network vs network trained from scratch. Second one is on the left.](images/image-20200928234006276.png)
 
-## 7. Predictions analysis
+## 6.3. Predictions analysis
 
 Last image shows predictions for every analyzed model. X-axis shows different models and y-axis shows index of validation dataset example. Black color means that model made a mistake. There are visible grids with different settings. First rows shows pretrained networks and latter ones show increasing of regularization and decreasing performance. Image contains horizontal lines which indicate that there are some hard examples in the dataset- multiple different models make mistake on theirs prediction. The hardest class was number 183, Suzuki SX4 Sedan 2012, it have 5 images that wasn't predicted well by any of my classifier.
 
@@ -548,3 +535,4 @@ Last image shows predictions for every analyzed model. X-axis shows different mo
 
 EfficientNet can be easily applied to transfer learning classification tasks and even the default configuration can be useful and yield good results. Results show almost state of the art accuracy on Stanford Cars dataset giving possibility to achieve even better results when using more complex version of EfficientNets. Implementation has its drawbacks because of generative approach to network creation. Compound scaling shows good results and to my current knowledge there are no other approaches that surpass this proposal.
 
+* References are in the references.bib file.
