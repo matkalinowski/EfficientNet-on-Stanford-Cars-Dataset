@@ -22,17 +22,17 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         pred = self(x)
         loss = self.loss(pred, y)
 
-        acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
+        # acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
         # result = pl.TrainResult(loss)
-        self.logger({'train_loss': loss, 'train_acc': acc})
+        # self.log({'train_loss': loss, 'train_acc': acc})
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         pred = self(x)
         loss = self.loss(pred, y)
-        acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
-        self.logger({'val_loss': loss, 'val_acc': acc})
+        # acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
+        # self.log({'val_loss': loss, 'val_acc': acc})
 
         return loss
 
