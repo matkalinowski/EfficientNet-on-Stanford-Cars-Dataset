@@ -7,11 +7,12 @@ from models.efficient_net.block_params import round_filters
 from models.efficient_net.conv_2d import get_same_padding_conv2d
 from models.efficient_net.mb_conv_block import MBConvBlock
 from training.cars_dataset_lightning_module import StanfordCarsDatasetLightningModule
+from training.trial_info import TrialInfo
 
 
 class EfficientNet(StanfordCarsDatasetLightningModule):
 
-    def __init__(self, trial_info):
+    def __init__(self, trial_info: TrialInfo):
         net_info = trial_info.model_info
         self.image_size = net_info.network_params.compound_scalars.resolution
 

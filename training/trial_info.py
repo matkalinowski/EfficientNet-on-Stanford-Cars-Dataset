@@ -1,14 +1,15 @@
-import dataclasses
-from dataclasses import dataclass
-from pathlib import Path
 from typing import Dict, Optional
-from uuid import UUID, uuid1
+from uuid import uuid1
 
+import dataclasses
 import pandas as pd
+from dataclasses import dataclass
 from torch.optim import Optimizer
+from torch import nn
 
 from config.structure import get_project_structure
 from models.efficient_net.efficient_nets import EfficientNets
+from training.label_smoothing_cross_entropy import LabelSmoothingCrossEntropy
 from utils.folders import create_date_folder, mkdir_if_not_exists
 
 
@@ -30,6 +31,8 @@ class TrialInfo:
 
     num_classes: int
     in_channels: int
+
+    loss: nn.Module = LabelSmoothingCrossEntropy()
 
     def __post_init__(self):
         self.trial_id = uuid1()

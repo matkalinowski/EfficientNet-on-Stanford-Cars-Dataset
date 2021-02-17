@@ -15,7 +15,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
     def __init__(self, trial_info):
         super().__init__()
         self.trial_info = trial_info
-        self.loss = LabelSmoothingCrossEntropy()
+        self.loss = trial_info.loss
 
     def training_step(self, batch, batch_idx):
         x, y = batch
