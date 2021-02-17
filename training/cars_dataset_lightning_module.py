@@ -21,7 +21,6 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         x, y = batch
         pred = self(x)
         loss = self.loss(pred, y)
-        pl.EvalResult()
 
         # acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
         # result = pl.TrainResult(loss)
