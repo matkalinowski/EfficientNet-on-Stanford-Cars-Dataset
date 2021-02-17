@@ -23,9 +23,8 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         loss = self.loss(pred, y)
 
         acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
-        result = pl.TrainResult(loss)
-        result.log_dict({'train_loss': loss, 'train_acc': acc})
-        return result
+        # result = pl.TrainResult(loss)
+        return {'train_loss': loss, 'train_acc': acc}
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
@@ -33,9 +32,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         loss = self.loss(pred, y)
         acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
 
-        result = pl.EvalResult(checkpoint_on=loss, early_stop_on=loss)
-        result.log_dict({'val_loss': loss, 'val_acc': acc})
-        return result
+        return {'val_loss': loss, 'val_acc': acc}
 
     def configure_optimizers(self):
         optimizer = self.trial_info.optimizer(self.parameters(), lr=self.trial_info.initial_lr,
