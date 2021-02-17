@@ -21,6 +21,7 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
         x, y = batch
         pred = self(x)
         loss = self.loss(pred, y)
+        pl.EvalResult()
 
         # acc = FM.accuracy(pred, y, num_classes=self.trial_info.num_classes)
         # result = pl.TrainResult(loss)
@@ -39,11 +40,12 @@ class StanfordCarsDatasetLightningModule(pl.LightningModule, ABC):
     def configure_optimizers(self):
         optimizer = self.trial_info.optimizer(self.parameters(), lr=self.trial_info.initial_lr,
                                               **self.trial_info.optimizer_settings)
-        # fix according to: https://github.com/PyTorchLightning/pytorch-lightning/issues/2976
-        scheduler = {
-            'scheduler': ReduceLROnPlateau(optimizer, verbose=True, **self.trial_info.scheduler_settings),
-            'reduce_on_plateau': True,
-            'monitor': 'val_loss',
-            'name': 'lr'
-        }
-        return [optimizer], [scheduler]
+        # # fix according to: https://github.com/PyTorchLightning/pytorch-lightning/issues/2976
+        # scheduler = {
+        #     'scheduler': ReduceLROnPlateau(optimizer, verbose=True, **self.trial_info.scheduler_settings),
+        #     'reduce_on_plateau': True,
+        #     'monitor': 'val_loss',
+        #     'name': 'lr'
+        # }
+        # return [optimizer], [scheduler]
+        return optimizer
