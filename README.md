@@ -172,7 +172,7 @@ Specific requirements with their versions can be found here:
 
 https://github.com/matkalinowski/dnn/blob/master/requirements.txt
 
-## 4.1Tools summary
+## 4.1 Tools summary
 
 **Pytorch** is a great library for deep learning models development and it is very easy to get started as well as prototype. It enables easy models debugging and clean API. **Pytorch-lightning** introduces modules that help organize code and I also definitely recommend it.
 
