@@ -1,2 +1,2 @@
 python-telegram-bot==12.8
-onnx==1.7.0
+onnx==1.13.0
